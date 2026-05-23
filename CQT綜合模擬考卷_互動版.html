@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CQT 綜合模擬考卷 — 互動版</title>
+<style>
+:root{
+  --navy:#1C3A5F;--teal:#0891B2;--orange:#E97316;
+  --green:#059669;--red:#DC2626;--purple:#7C3AED;
+  --bg:#F0F6FF;--dark:#1E293B;--gray:#64748B;
+  --lgray:#E2E8F0;--white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft JhengHei","微軟正黑體",Arial,sans-serif;background:var(--bg);color:var(--dark);}
+
+/* ─── START SCREEN ─────────────────── */
+#start{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:linear-gradient(135deg,var(--navy) 0%,#2563a8 100%);}
+.start-card{background:white;border-radius:16px;padding:2.5rem;max-width:640px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.start-logo{font-size:2.8rem;font-weight:900;color:var(--navy);margin-bottom:.3rem;}
+.start-sub{font-size:1.1rem;color:var(--teal);font-weight:600;margin-bottom:1.5rem;}
+.start-info{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0;}
+.info-box{background:var(--bg);border-radius:10px;padding:1rem;border-left:4px solid var(--teal);}
+.info-box b{color:var(--navy);display:block;margin-bottom:.3rem;font-size:.95rem;}
+.info-box span{color:var(--gray);font-size:.88rem;}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0;}
+.mode-btn{border:2px solid var(--lgray);border-radius:12px;padding:1.2rem;cursor:pointer;text-align:left;background:white;transition:.2s;}
+.mode-btn:hover,.mode-btn.selected{border-color:var(--teal);background:#eff6ff;}
+.mode-btn.selected{border-color:var(--navy);background:#dbeafe;}
+.mode-icon{font-size:1.8rem;margin-bottom:.5rem;}
+.mode-title{font-weight:700;color:var(--navy);font-size:1rem;}
+.mode-desc{font-size:.82rem;color:var(--gray);margin-top:.3rem;line-height:1.4;}
+.btn-start{width:100%;padding:1rem;background:var(--navy);color:white;border:none;border-radius:10px;font-size:1.1rem;font-weight:700;cursor:pointer;margin-top:.5rem;transition:.2s;font-family:inherit;}
+.btn-start:hover{background:var(--teal);}
+
+/* ─── APP LAYOUT ─────────────────── */
+#app{display:none;height:100vh;flex-direction:column;}
+header{background:var(--navy);color:white;padding:.6rem 1.2rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+.hdr-title{font-size:1rem;font-weight:700;flex:1;}
+.hdr-timer{font-size:1.1rem;font-weight:700;font-variant-numeric:tabular-nums;background:rgba(255,255,255,.1);padding:.3rem .8rem;border-radius:8px;min-width:80px;text-align:center;}
+.hdr-timer.warn{background:#dc2626;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.hdr-score{font-size:.9rem;background:var(--teal);padding:.3rem .8rem;border-radius:8px;}
+.progress-bar{height:4px;background:rgba(255,255,255,.2);flex-shrink:0;}
+.progress-fill{height:100%;background:var(--teal);transition:.3s;}
+
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* ─── SIDEBAR ─────────────────── */
+aside{width:240px;background:white;border-right:1px solid var(--lgray);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.sec-tabs{display:flex;border-bottom:1px solid var(--lgray);}
+.sec-tab{flex:1;padding:.7rem .3rem;text-align:center;cursor:pointer;font-size:.82rem;font-weight:600;color:var(--gray);border-bottom:3px solid transparent;transition:.2s;}
+.sec-tab.active{color:var(--navy);border-bottom-color:var(--teal);}
+.q-grid{padding:.8rem;overflow-y:auto;flex:1;}
+.q-grid-title{font-size:.75rem;color:var(--gray);text-transform:uppercase;margin-bottom:.5rem;letter-spacing:.05em;}
+.q-dots{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:1rem;}
+.q-dot{aspect-ratio:1;border-radius:4px;background:var(--lgray);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;color:var(--gray);transition:.15s;border:none;}
+.q-dot:hover{background:#cbd5e1;}
+.q-dot.answered{background:#dbeafe;color:var(--navy);}
+.q-dot.correct{background:#dcfce7;color:var(--green);}
+.q-dot.wrong{background:#fee2e2;color:var(--red);}
+.q-dot.current{outline:2px solid var(--navy);outline-offset:1px;}
+.sidebar-stats{padding:.8rem;border-top:1px solid var(--lgray);font-size:.8rem;color:var(--gray);}
+.stat-row{display:flex;justify-content:space-between;margin-bottom:.3rem;}
+.stat-val{font-weight:700;color:var(--dark);}
+
+/* ─── MAIN CONTENT ─────────────────── */
+main{flex:1;overflow-y:auto;padding:1.5rem;}
+.q-card{background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;max-width:780px;margin:0 auto;}
+.q-header{background:var(--navy);color:white;padding:1rem 1.2rem;display:flex;align-items:center;gap:.8rem;}
+.q-num{background:var(--teal);color:white;border-radius:8px;padding:.3rem .7rem;font-weight:700;font-size:.9rem;white-space:nowrap;}
+.q-chapter{font-size:.82rem;color:#a0c4e8;}
+.q-body{padding:1.4rem;}
+.q-text{font-size:1rem;font-weight:600;color:var(--dark);line-height:1.6;margin-bottom:1.2rem;}
+.options{display:grid;gap:.5rem;}
+.opt-btn{width:100%;text-align:left;padding:.75rem 1rem;border-radius:8px;border:2px solid var(--lgray);background:white;cursor:pointer;font-size:.95rem;color:var(--dark);transition:.15s;font-family:inherit;line-height:1.4;}
+.opt-btn:hover:not(:disabled){border-color:var(--teal);background:#eff6ff;}
+.opt-btn.selected{border-color:#94a3b8;background:#f8fafc;}
+.opt-btn.correct{border-color:var(--green)!important;background:#f0fdf4!important;color:var(--green);font-weight:600;}
+.opt-btn.wrong{border-color:var(--red)!important;background:#fef2f2!important;color:var(--red);text-decoration:line-through;}
+.opt-btn:disabled{cursor:default;}
+.expl-box{margin-top:1rem;padding:.9rem 1rem;background:#fffbeb;border-left:4px solid var(--orange);border-radius:0 8px 8px 0;font-size:.9rem;color:var(--dark);line-height:1.5;display:none;}
+.expl-box.show{display:block;}
+.exam-note{margin-top:1rem;padding:.8rem;background:var(--bg);border-radius:8px;font-size:.88rem;color:var(--gray);text-align:center;}
+
+/* ─── CALC SLIDE ─────────────────── */
+.calc-q-box{background:#eff6ff;border:1.5px solid var(--navy);border-radius:8px;padding:1rem 1.2rem;margin-bottom:.8rem;font-size:.98rem;font-weight:600;color:var(--navy);line-height:1.5;}
+.given-box{background:var(--teal);color:white;border-radius:8px;padding:.6rem 1rem;margin-bottom:.8rem;font-size:.88rem;}
+.given-label{font-weight:700;margin-bottom:.2rem;}
+.work-area{border:2px dashed var(--lgray);border-radius:8px;min-height:180px;padding:1rem;margin:.8rem 0;position:relative;}
+.work-label{position:absolute;top:.7rem;left:.8rem;font-size:.85rem;color:#cbd5e1;font-weight:600;}
+.work-area textarea{width:100%;min-height:140px;border:none;background:transparent;resize:none;font-family:inherit;font-size:.9rem;color:var(--dark);padding-top:1.8rem;outline:none;}
+.reveal-btn{padding:.65rem 1.4rem;background:var(--navy);color:white;border:none;border-radius:8px;cursor:pointer;font-size:.95rem;font-weight:600;font-family:inherit;transition:.2s;}
+.reveal-btn:hover{background:var(--teal);}
+.solution-box{margin-top:1rem;border:1.5px solid var(--lgray);border-radius:8px;overflow:hidden;display:none;}
+.solution-box.show{display:block;}
+.sol-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:700;font-size:.9rem;}
+.steps{padding:.8rem 1rem;}
+.step-row{display:flex;gap:.7rem;margin-bottom:.6rem;align-items:flex-start;}
+.step-num{background:var(--orange);color:white;border-radius:6px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;flex-shrink:0;margin-top:1px;}
+.step-text{font-size:.9rem;color:var(--dark);line-height:1.5;padding-top:2px;}
+.ans-banner{background:var(--green);color:white;padding:.65rem 1rem;font-weight:700;font-size:.92rem;border-radius:0 0 8px 8px;}
+.calc-self-check{display:flex;align-items:center;gap:.6rem;margin-top:.8rem;padding:.7rem 1rem;background:#f0fdf4;border-radius:8px;font-size:.9rem;color:var(--dark);}
+.calc-self-check input{width:18px;height:18px;cursor:pointer;accent-color:var(--green);}
+
+/* ─── NAV BUTTONS ─────────────────── */
+.q-nav{display:flex;align-items:center;justify-content:space-between;max-width:780px;margin:1rem auto 0;}
+.nav-btn{padding:.6rem 1.2rem;border-radius:8px;border:2px solid var(--lgray);background:white;cursor:pointer;font-size:.92rem;font-weight:600;color:var(--dark);font-family:inherit;transition:.2s;}
+.nav-btn:hover:not(:disabled){border-color:var(--navy);color:var(--navy);}
+.nav-btn:disabled{opacity:.4;cursor:default;}
+.nav-btn.primary{background:var(--navy);color:white;border-color:var(--navy);}
+.nav-btn.primary:hover{background:var(--teal);border-color:var(--teal);}
+.q-counter{font-size:.9rem;color:var(--gray);}
+
+/* ─── RESULTS ─────────────────── */
+#results{display:none;min-height:100vh;background:var(--bg);padding:2rem;}
+.res-hero{background:var(--navy);color:white;border-radius:16px;padding:2rem;text-align:center;margin-bottom:1.5rem;max-width:700px;margin-left:auto;margin-right:auto;}
+.res-score{font-size:4rem;font-weight:900;color:var(--teal);line-height:1;}
+.res-total{font-size:1rem;color:#a0c4e8;margin-bottom:1rem;}
+.res-grade{font-size:1.4rem;font-weight:700;margin:.5rem 0;}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:1rem;}
+.res-stat{background:rgba(255,255,255,.1);border-radius:10px;padding:.8rem;}
+.res-stat-n{font-size:1.6rem;font-weight:700;}
+.res-stat-l{font-size:.8rem;color:#a0c4e8;}
+.res-card{background:white;border-radius:12px;padding:1.5rem;max-width:700px;margin:0 auto 1rem;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.res-card h3{color:var(--navy);margin-bottom:1rem;font-size:1rem;}
+.review-item{padding:.6rem 0;border-bottom:1px solid var(--lgray);display:flex;align-items:flex-start;gap:.7rem;font-size:.88rem;}
+.review-item:last-child{border-bottom:none;}
+.ri-icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.ri-q{flex:1;}
+.ri-q b{display:block;color:var(--dark);margin-bottom:.2rem;}
+.ri-q small{color:var(--gray);}
+.btn-retry{padding:.8rem 2rem;background:var(--teal);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:.5rem;}
+.calc-review-item{padding:.8rem 0;border-bottom:1px solid var(--lgray);font-size:.88rem;}
+.calc-review-item:last-child{border-bottom:none;}
+.cri-q{font-weight:600;color:var(--dark);margin-bottom:.3rem;}
+.cri-ans{color:var(--green);font-size:.85rem;}
+.section-switch-btn{padding:.5rem 1rem;background:var(--bg);border:2px solid var(--navy);color:var(--navy);border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:600;font-family:inherit;transition:.2s;}
+.section-switch-btn:hover,.section-switch-btn.active{background:var(--navy);color:white;}
+.exam-submit-bar{background:var(--navy);color:white;padding:.8rem 1.5rem;border-radius:10px;display:flex;align-items:center;justify-content:space-between;max-width:780px;margin:1rem auto 0;}
+.submit-btn{padding:.55rem 1.4rem;background:var(--orange);color:white;border:none;border-radius:8px;cursor:pointer;font-size:.95rem;font-weight:700;font-family:inherit;}
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="start">
+  <div class="start-card">
+    <div class="start-logo">CQT 綜合模擬考卷</div>
+    <div class="start-sub">品管技術師 全科模擬測驗 — 互動版</div>
+    <div class="start-info">
+      <div class="info-box"><b>📝 選擇題</b><span>Q1～Q70，共70題，每題1分</span></div>
+      <div class="info-box"><b>🧮 計算題</b><span>Q71～Q100，共30題，每題2分</span></div>
+      <div class="info-box"><b>🎯 總分</b><span>130分（選70分＋計算60分）</span></div>
+      <div class="info-box"><b>⏱ 建議時間</b><span>150分鐘（可自行計時）</span></div>
+    </div>
+    <div style="font-weight:700;color:var(--navy);margin-bottom:.6rem;">選擇作答模式：</div>
+    <div class="mode-grid">
+      <button class="mode-btn selected" onclick="selectMode('practice',this)">
+        <div class="mode-icon">📚</div>
+        <div class="mode-title">練習模式</div>
+        <div class="mode-desc">每題作答後立即顯示正解與解析，邊做邊學</div>
+      </button>
+      <button class="mode-btn" onclick="selectMode('exam',this)">
+        <div class="mode-icon">📋</div>
+        <div class="mode-title">考試模式</div>
+        <div class="mode-desc">全部作答完畢後統一顯示成績與解析，模擬正式考試</div>
+      </button>
+    </div>
+    <button class="btn-start" onclick="startExam()">▶ 開始作答</button>
+  </div>
+</div>
+
+<!-- EXAM APP -->
+<div id="app" style="display:flex;">
+  <header>
+    <button onclick="goHome()" style="background:none;border:none;color:white;cursor:pointer;font-size:1.1rem;">⌂</button>
+    <div class="hdr-title">CQT 綜合模擬考卷</div>
+    <div id="mode-badge" style="font-size:.78rem;background:rgba(255,255,255,.15);padding:.2rem .6rem;border-radius:6px;"></div>
+    <div class="hdr-timer" id="timer">00:00</div>
+    <div class="hdr-score" id="score-badge">0 / 70 答</div>
+  </header>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="layout">
+    <aside>
+      <div class="sec-tabs">
+        <div class="sec-tab active" id="tab-mcq" onclick="switchSection('mcq')">選擇題<br><small id="mcq-tab-count">0/70</small></div>
+        <div class="sec-tab" id="tab-calc" onclick="switchSection('calc')">計算題<br><small id="calc-tab-count">0/30</small></div>
+      </div>
+      <div class="q-grid">
+        <div class="q-grid-title">選擇題</div>
+        <div class="q-dots" id="dots-mcq"></div>
+        <div class="q-grid-title">計算題</div>
+        <div class="q-dots" id="dots-calc"></div>
+      </div>
+      <div class="sidebar-stats">
+        <div class="stat-row"><span>✅ 答對</span><span class="stat-val" id="stat-correct">0</span></div>
+        <div class="stat-row"><span>❌ 答錯</span><span class="stat-val" id="stat-wrong">0</span></div>
+        <div class="stat-row"><span>🧮 計算（自評）</span><span class="stat-val" id="stat-calc">0/30</span></div>
+        <div style="margin-top:.5rem;">
+          <button class="submit-btn" style="width:100%;border-radius:8px;padding:.5rem;" onclick="showResults()">查看成績 →</button>
+        </div>
+      </div>
+    </aside>
+    <main id="content"></main>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results"></div>
+
+<script>
+const MCQ = [{"n": 1, "q": "根據 Juran 品質三部曲，下列哪項「不」屬於其中？", "opts": ["A. 品質規劃", "B. 品質改善", "C. 品質稽核", "D. 品質管制"], "ans": "C", "expl": "朱蘭三部曲=規劃+管制+改善，「稽核」不屬其中。"}, {"n": 2, "q": "ISO 9001:2015 共有幾個條款（Clauses）？", "opts": ["A. 8", "B. 10", "C. 12", "D. 14"], "ans": "B", "expl": "ISO 9001:2015 共10個條款（1~3為總則，4~10為要求）。"}, {"n": 3, "q": "品質成本中，「員工品質訓練」屬於哪類成本？", "opts": ["A. 鑑定成本", "B. 內部失敗成本", "C. 預防成本", "D. 外部失敗成本"], "ans": "C", "expl": "預防成本含訓練、設計審查；鑑定成本含檢驗；失敗成本含不良品。"}, {"n": 4, "q": "PDCA 循環中，「A（Act）」代表？", "opts": ["A. 分析問題根因", "B. 標準化並持續推廣最佳做法", "C. 比較實際與計畫差異", "D. 收集現場數據"], "ans": "B", "expl": "Plan=計畫，Do=執行，Check=查核，Act=標準化行動/持續改善。"}, {"n": 5, "q": "當顧客「感知」遠低於「期望」時，顧客狀態為？", "opts": ["A. 極度滿意", "B. 滿意", "C. 不滿意", "D. 中性"], "ans": "C", "expl": "滿意度=感知−期望；感知<期望→不滿意，越負越不滿意。"}, {"n": 6, "q": "下列哪項屬於「外部失敗成本」？", "opts": ["A. 製程重工", "B. 進料退料", "C. 客戶保固維修", "D. 成品報廢"], "ans": "C", "expl": "外部失敗=出廠後：召回、保固、退貨；內部失敗=出廠前：重工、報廢。"}, {"n": 7, "q": "TQM（全面品質管理）的顧客概念正確描述是？", "opts": ["A. 僅指最終消費者", "B. 內外部顧客均需滿足", "C. 以股東利益為優先", "D. 只考慮大客戶"], "ans": "B", "expl": "TQM顧客含內部顧客（下一製程）與外部顧客（終端使用者）。"}, {"n": 8, "q": "田口品質損失函數 L(y)=k(y−m)² 中，k=A/Δ²，其中 A 代表？", "opts": ["A. 規格容差（Tolerance）", "B. 功能界限", "C. 損壞或修理費用", "D. 製程標準差"], "ans": "C", "expl": "k=A/Δ²：A=修理費用（超過功能界限的損失），Δ=功能界限（容許偏差）。"}, {"n": 9, "q": "ISO 9001:2015 相比 2008 版，新增的重要要求是？", "opts": ["A. 品質手冊（強制）", "B. 風險思維與情境分析", "C. 管理代表（強制）", "D. 糾正措施報告格式"], "ans": "B", "expl": "2015版新增：風險思維（6.1）、情境分析（4.1/4.2）；取消強制品質手冊與管理代表。"}, {"n": 10, "q": "QFD「品質屋」中，「屋頂」代表的是？", "opts": ["A. 顧客需求（Whats）", "B. 工程特性相互關係矩陣", "C. 競爭者比較", "D. 技術目標值"], "ans": "B", "expl": "品質屋屋頂=工程特性（Hows）之間的相關矩陣，顯示技術特性間的取捨關係。"}, {"n": 11, "q": "六標準差（6σ）允許製程有1.5σ偏移時，其長期不良率為？", "opts": ["A. 3.4 PPM", "B. 6.8 PPM", "C. 0.34 PPM", "D. 233 PPM"], "ans": "A", "expl": "6σ含1.5σ偏移時不良率=3.4 PPM，這是六標準差的標準定義。"}, {"n": 12, "q": "IATF 16949 主要適用於哪個產業？", "opts": ["A. 航太製造業", "B. 汽車零組件供應鏈", "C. 醫療器材業", "D. 食品加工業"], "ans": "B", "expl": "IATF 16949 是汽車產業品質管理系統標準，以 ISO 9001 為基礎。"}, {"n": 13, "q": "FMEA 中，RPN（風險優先數）= ？", "opts": ["A. S + O + D", "B. S × O × D", "C. S × O", "D. (S+O+D)/3"], "ans": "B", "expl": "RPN=嚴重度(S)×發生頻度(O)×難檢度(D)，用於優先排序失效模式。"}, {"n": 14, "q": "5S 活動中，「整頓（Seiton）」的正確定義是？", "opts": ["A. 清除不需要的物品", "B. 物品定位、定量、標示清楚", "C. 維持清潔標準", "D. 養成良好工作習慣"], "ans": "B", "expl": "整理=去除不要物；整頓=定位定量；清掃=保持清潔；清潔=維持整頓清掃；素養=習慣養成。"}, {"n": 15, "q": "ISO 9001:2015 條款 6（規劃）的主要內容包含？", "opts": ["A. 人員訓練與能力", "B. 風險管理、品質目標、變更規劃", "C. 內部稽核程序", "D. 顧客滿意度調查"], "ans": "B", "expl": "條款6=規劃：6.1=風險機會，6.2=品質目標，6.3=變更規劃。條款7=支援（含人員訓練）。"}, {"n": 16, "q": "8D 問題解決法中，「永久矯正措施（PCA）」屬於哪一步？", "opts": ["A. D3：臨時圍堵措施", "B. D4：根本原因分析", "C. D5：永久矯正措施選擇", "D. D6：實施永久矯正措施"], "ans": "C", "expl": "D5=選擇並確認永久矯正措施（PCA），D6=實施PCA並驗效，需區分選擇(D5)與實施(D6)。"}, {"n": 17, "q": "「第二方稽核」是指？", "opts": ["A. 公司內部自我稽核", "B. 顧客或關係方對供應商進行稽核", "C. 第三方認證機構稽核", "D. 政府法規主管機關稽核"], "ans": "B", "expl": "第一方=內部稽核，第二方=顧客稽核供應商，第三方=認證機構（如BSI、SGS）。"}, {"n": 18, "q": "防錯法（Poka-Yoke）中「控制型（Control Type）」的特點是？", "opts": ["A. 發出警報提醒操作者", "B. 記錄錯誤供事後分析", "C. 完全阻止錯誤的發生", "D. 自動修正錯誤"], "ans": "C", "expl": "控制型=阻止錯誤繼續進行（強制性防錯）；警告型=發出警報但不阻止。"}, {"n": 19, "q": "APQP（先進產品品質規劃）共分為幾個階段？", "opts": ["A. 3", "B. 4", "C. 5", "D. 6"], "ans": "C", "expl": "APQP五階段：1.規劃定義→2.產品設計開發→3.製程設計開發→4.產品製程驗證→5.回饋評估改善。"}, {"n": 20, "q": "QMS 文件層次由高至低，正確順序為？", "opts": ["A. 程序書→品質手冊→作業指導書→表單", "B. 品質手冊→程序書→作業指導書→表單", "C. 品質手冊→作業指導書→程序書→表單", "D. 品質手冊→程序書→表單→作業指導書"], "ans": "B", "expl": "Level 1=品質手冊(Why)，Level 2=程序書(What/Who)，Level 3=作業指導書(How)，Level 4=表單(Record)。"}, {"n": 21, "q": "六標準差 DMAIC 中，「M（Measure）」階段的主要工作是？", "opts": ["A. 定義問題與範圍", "B. 量測現況基準與製程能力", "C. 分析根本原因", "D. 實施改善方案"], "ans": "B", "expl": "D=定義，M=量測現況基準（含MSA、基準Cpk），A=分析根因，I=改善，C=管制維持。"}, {"n": 22, "q": "ISO 14001 是哪類管理系統標準？", "opts": ["A. 品質管理系統", "B. 環境管理系統", "C. 職業安全衛生管理", "D. 資訊安全管理"], "ans": "B", "expl": "ISO 14001=環境管理；ISO 45001=職業安全衛生；ISO 27001=資訊安全；ISO 9001=品質管理。"}, {"n": 23, "q": "PPAP（生產零件核准程序）是以下哪個標準的核心工具？", "opts": ["A. ISO 9001", "B. AS9100（航太）", "C. IATF 16949（汽車）", "D. ISO 13485（醫療）"], "ans": "C", "expl": "PPAP是IATF 16949 / AIAG的核心交付物，用於供應商新零件的品質確認。"}, {"n": 24, "q": "柏拉圖（Pareto Chart）所依據的核心原則是？", "opts": ["A. 所有問題同等重要", "B. 80%的問題由20%的原因造成", "C. 必須消除所有缺陷類型", "D. 問題依時間序列排列"], "ans": "B", "expl": "80/20法則（Vital Few vs. Trivial Many）：少數重要原因造成大多數問題。"}, {"n": 25, "q": "魚骨圖「6M」中，下列哪項「不」在其中？", "opts": ["A. Manpower（人）", "B. Machine（機）", "C. Market（市場）", "D. Mother Nature（環境）"], "ans": "C", "expl": "6M=Man/Machine/Material/Method/Measurement/Mother Nature；Market(市場)不屬於6M。"}, {"n": 26, "q": "散佈圖相關係數 r = +0.92 代表？", "opts": ["A. 強負相關", "B. 弱正相關", "C. 強正相關", "D. 無線性相關"], "ans": "C", "expl": "|r|>0.8通常為強相關；r>0=正相關；r<0=負相關；|r|<0.3=弱或無線性相關。"}, {"n": 27, "q": "直方圖的組距（Class Width）計算公式為？", "opts": ["A. 全距 / 組數", "B. 組數 / 全距", "C. √（資料數n）", "D. 全距 × 組數"], "ans": "A", "expl": "組距 = 全距（Max-Min）/ 組數；組數通常取√n或依Sturges法則 log₂n+1。"}, {"n": 28, "q": "X̄-R 管制圖中，X̄ 圖的上管制界限（UCL）公式為？", "opts": ["A. X̄̄ + 3σ", "B. X̄̄ + A₂R̄", "C. X̄̄ + D₄R̄", "D. R̄ + 3σ_R"], "ans": "B", "expl": "UCL_X̄ = X̄̄ + A₂R̄；A₂為依子群大小n查表的係數（如n=5，A₂=0.577）。"}, {"n": 29, "q": "查檢表（Check Sheet）的主要功能是？", "opts": ["A. 分析不良原因", "B. 系統化地收集與記錄資料", "C. 排列問題的優先順序", "D. 展示各要因間的關係"], "ans": "B", "expl": "查檢表是資料收集工具，用於有系統地記錄觀測數據，不做分析。"}, {"n": 30, "q": "層別法（Stratification）最常搭配哪個工具以避免假相關？", "opts": ["A. FMEA", "B. 散佈圖", "C. 品質屋", "D. 柏拉圖"], "ans": "B", "expl": "散佈圖中若混合不同來源（機台、班別）資料可能出現假相關；層別後分組分析才準確。"}, {"n": 31, "q": "Western Electric 法則中，「Rule 4：連續6點遞增或遞減」代表？", "opts": ["A. 製程超出管制界限", "B. 製程有漂移（趨勢）的跡象", "C. 製程呈循環模式", "D. 資料呈雙峰分布"], "ans": "B", "expl": "連續6點（或以上）單調遞增或遞減=趨勢信號，可能是磨耗、老化、原料批次變化。"}, {"n": 32, "q": "柏拉圖中，累積百分比折線達 80% 時，其左側項目稱為？", "opts": ["A. 瑣事的多數（Trivial Many）", "B. 重要的少數（Vital Few）", "C. 所有問題類別", "D. 中位數附近的問題"], "ans": "B", "expl": "80%累積以內的項目=「重要的少數」（Vital Few），是改善優先目標。"}, {"n": 33, "q": "直方圖呈現「雙峰（Bimodal）」分布，最可能的原因是？", "opts": ["A. 量測系統誤差", "B. 兩種不同製程或來源的資料混合", "C. 規格設定太寬", "D. 樣本數不足"], "ans": "B", "expl": "雙峰通常代表兩個不同群體（如不同班別、供應商）混合，應使用層別法分開分析。"}, {"n": 34, "q": "新QC七手法中，「親和圖（Affinity Diagram）」的用途是？", "opts": ["A. 整理歸納大量模糊意見或構想，找出共同主題", "B. 分析複雜問題的多因果關係", "C. 規劃專案執行時程", "D. 評估多方案的優先順序"], "ans": "A", "expl": "親和圖=KJ法，將發散的語言資料歸類整合；關聯圖用於分析複雜因果關係。"}, {"n": 35, "q": "管制圖的「管制界限」與「規格界限」的關係，正確描述是？", "opts": ["A. 管制界限等於規格界限", "B. 管制界限由製程統計計算；規格界限由顧客或設計決定", "C. 規格界限通常比管制界限更窄", "D. 兩者可互相替換使用"], "ans": "B", "expl": "管制界限=製程自然變異邊界（±3σ）；規格界限=顧客要求。二者不可混用，這是SPC最重要概念之一。"}, {"n": 36, "q": "ANSI Z1.4 正常檢驗轉換為加嚴檢驗（Tightened）的條件是？", "opts": ["A. 連續5批中有2批被拒收", "B. 連續10批全數允收", "C. AQL超過規定標準", "D. 批量超過規定值"], "ans": "A", "expl": "正常→加嚴：近5批中有2批拒收；加嚴→正常：連續5批全數允收；加嚴→停檢：連續5批拒收。"}, {"n": 37, "q": "OC 曲線（Operating Characteristic Curve）的縱軸代表？", "opts": ["A. 批不合格率 p", "B. 允收機率 Pa", "C. 樣本數 n", "D. 拒收機率 (1-Pa)"], "ans": "B", "expl": "OC曲線：橫軸=批不合格率p，縱軸=允收機率Pa；完整描述抽樣計畫的辨別力。"}, {"n": 38, "q": "雙次抽樣（Double Sampling）的主要優點是？", "opts": ["A. 計算比單次更簡單", "B. 決策比單次更快速", "C. 品質明顯好或差時，ASN通常少於單次", "D. 允收數一定較大"], "ans": "C", "expl": "雙次抽樣對品質極好或極差的批，ASN通常比單次少；品質中等時ASN可能更多。"}, {"n": 39, "q": "「生產者風險（α，Producer's Risk）」的定義是？", "opts": ["A. 劣批被允收的機率", "B. 良批被拒收的機率", "C. 抽樣過程的統計誤差", "D. 檢驗員的判斷錯誤率"], "ans": "B", "expl": "α=Type I Error=良批被誤判拒收（冤枉好批）；β=Type II Error=劣批被誤判允收。"}, {"n": 40, "q": "「平均出廠品質上限（AOQL）」代表？", "opts": ["A. 允收品質界限", "B. 批不合格率的上限", "C. 長期出廠品質最差的可能值", "D. 拒收批的比率"], "ans": "C", "expl": "AOQL=AOQ曲線的峰值，是採用該抽樣計畫後，長期出廠品質最差的可能平均值。"}, {"n": 41, "q": "系統抽樣（Systematic Sampling）的抽樣間隔 k = ？", "opts": ["A. 批量 N / 樣本數 n", "B. 樣本數 n / 批量 N", "C. √批量 N", "D. AQL × 批量 N"], "ans": "A", "expl": "系統抽樣：k = N/n，隨機決定第一個起始點（1≤r≤k），之後每隔k個取一個。"}, {"n": 42, "q": "計量值抽樣計畫（ANSI Z1.9）相比計數值（Z1.4）的優點是？", "opts": ["A. 不需要常態分配假設", "B. 相同保護程度下所需樣本數更少", "C. 適用於所有資料類型", "D. 計算更為簡單"], "ans": "B", "expl": "計量值抽樣利用每個樣本的量測資訊，同等保護程度下樣本數約為計數值的1/2~1/3。"}, {"n": 43, "q": "批量 N=1,000，GIS II，AQL=2.5%，正常單次抽樣，樣本代字為？", "opts": ["A. G", "B. J", "C. K", "D. H"], "ans": "B", "expl": "N=501~1200，GIS II → 樣本代字 J；n=80，AQL 2.5%正常單次 → Ac=5，Re=6。"}, {"n": 44, "q": "下列哪種情況「最不適合」使用抽樣檢驗？", "opts": ["A. 批量大且破壞性試驗", "B. 檢驗成本高昂", "C. 零缺點要求的生命攸關零件", "D. 允許少量缺陷存在"], "ans": "C", "expl": "生命攸關（Safety Critical）零件不能依賴抽樣風險，需全數或100%自動化檢測。"}, {"n": 45, "q": "平均全檢數（ATI）在批不合格率 p 很低（品質很好）時，ATI 趨近於？", "opts": ["A. 批量 N", "B. 樣本數 n", "C. 0", "D. AQL × N"], "ans": "B", "expl": "品質好時多數批允收，ATI≈n（只抽樣不全檢）；品質差時多數批拒收後全檢，ATI→N。"}, {"n": 46, "q": "允收數 c=0 的抽樣計畫，其 OC 曲線特性是？", "opts": ["A. 對生產者最有利", "B. OC曲線較陡，對小缺陷率也有高拒收機率", "C. 樣本數可大幅減少", "D. 消費者風險最高"], "ans": "B", "expl": "c=0：任一不良即拒收，OC曲線陡峭，對生產者嚴格（α↑），但對消費者保護也強。"}, {"n": 47, "q": "二項分配 B(n,p) 的變異數 Var(X) = ？", "opts": ["A. np", "B. np(1-p)", "C. np²", "D. n²p(1-p)"], "ans": "B", "expl": "二項分配：E(X)=np，Var(X)=np(1-p)=npq，標準差=√(npq)。"}, {"n": 48, "q": "泊松分配（Poisson Distribution）的重要特性是？", "opts": ["A. 平均數 ≠ 變異數", "B. 平均數 = 變異數 = λ", "C. 僅適用於二元結果", "D. 需要有限樣本空間"], "ans": "B", "expl": "Poisson分配：E(X)=Var(X)=λ；這是泊松分配的識別特徵，常用於考題辨識。"}, {"n": 49, "q": "超幾何分配（Hypergeometric）與二項分配最主要的差異是？", "opts": ["A. 超幾何用於連續資料", "B. 超幾何用於無放回抽樣（有限母體）", "C. 二項用於無放回且有限母體", "D. 兩者在大樣本下差異很大"], "ans": "B", "expl": "超幾何=無放回抽樣（有限母體）；二項=有放回或母體很大；有限母體無放回用超幾何。"}, {"n": 50, "q": "標準常態分配中，P(−1.96 < Z < 1.96) ≈ ？", "opts": ["A. 68.27%", "B. 95.00%", "C. 95.45%", "D. 99.73%"], "ans": "B", "expl": "Z=±1.96 → 95.00%；Z=±1 → 68.27%；Z=±2 → 95.45%；Z=±3 → 99.73%。"}, {"n": 51, "q": "若 X ~ N(μ, σ²)，則 P(X > μ + 2σ) ≈ ？", "opts": ["A. 15.87%", "B. 4.55%", "C. 2.28%", "D. 0.13%"], "ans": "C", "expl": "P(Z>2)=1-Φ(2)=1-0.9772=0.0228=2.28%；P(Z>1)≈15.87%；P(Z>3)≈0.13%。"}, {"n": 52, "q": "中央極限定理（CLT）說明，樣本平均數 X̄ 的抽樣分配趨近？", "opts": ["A. N(μ, σ²)", "B. N(μ, σ²/n)", "C. t(n-1)", "D. χ²(n-1)"], "ans": "B", "expl": "CLT：X̄ ~ N(μ, σ²/n)，標準誤SE=σ/√n；n愈大，X̄的分配愈接近常態。"}, {"n": 53, "q": "幾何分配（Geometric Distribution）描述的是？", "opts": ["A. n次試驗中的成功次數", "B. 第一次成功前所需的試驗次數", "C. 單位時間內的事件次數", "D. 無放回抽樣的抽樣結果"], "ans": "B", "expl": "幾何分配：P(X=k)=(1-p)^(k-1)×p，描述第一次成功前需要的試驗次數。"}, {"n": 54, "q": "標準常態分配的峰態係數（Kurtosis）= ？", "opts": ["A. 0", "B. 1", "C. 2", "D. 3"], "ans": "D", "expl": "標準常態分配：偏態係數=0（對稱），峰態係數（超峰態=0，絕對峰態=3）。"}, {"n": 55, "q": "t 分配當自由度趨向無窮大（df→∞）時，趨近於？", "opts": ["A. 卡方分配", "B. 標準常態分配 N(0,1)", "C. F 分配", "D. 均勻分配"], "ans": "B", "expl": "t分配尾部比常態厚；df越大越接近標準常態；df→∞時，t分配=N(0,1)。"}, {"n": 56, "q": "若 X ~ B(20, 0.1)，E(X) = 2，則 Var(X) = ？", "opts": ["A. 2", "B. 0.2", "C. 1.8", "D. 4"], "ans": "C", "expl": "Var(X)=np(1-p)=20×0.1×0.9=1.8；E(X)=np=20×0.1=2。"}, {"n": 57, "q": "指數分配（Exponential）具有「無記憶性」，意義是？", "opts": ["A. 量測值不隨時間改變", "B. P(X>s+t|X>s)=P(X>t)，過去的時間不影響未來發生機率", "C. 分配呈完全對稱", "D. 平均數永遠等於標準差"], "ans": "B", "expl": "無記憶性：已等待 s 時間，再等 t 時間的機率，等同於全新計時等 t 時間的機率。"}, {"n": 58, "q": "「95% 信賴區間」的正確統計解讀是？", "opts": ["A. 母體參數有95%機率落在此區間", "B. 重複抽樣多次，約95%的區間會涵蓋真實母體參數", "C. 95%的樣本觀測值落在此範圍", "D. 犯Type I Error的機率為95%"], "ans": "B", "expl": "頻率學觀點：信賴區間是隨機的（每次抽樣不同），95%代表長期涵蓋率，非機率。"}, {"n": 59, "q": "p 管制圖監控的是哪個統計量？", "opts": ["A. 每批不良品數量（整數）", "B. 不良率（比例，0~1之間）", "C. 每單位缺點數", "D. 個別量測值"], "ans": "B", "expl": "p圖=不良率；np圖=不良品數（固定n）；c圖=缺點數（固定n）；u圖=單位缺點數（n可變）。"}, {"n": 60, "q": "製程能力指數 Cpk = 1.33 對應的製程σ水準約為？", "opts": ["A. 3σ", "B. 4σ", "C. 5σ", "D. 6σ"], "ans": "B", "expl": "Cpk=1.0→3σ；Cpk=1.33→4σ（IATF 16949最低要求）；Cpk=1.67→5σ；Cpk=2.0→6σ。"}, {"n": 61, "q": "X̄-R 管制圖中，若 X̄ 圖出現趨勢但 R 圖穩定，最可能的原因是？", "opts": ["A. 製程變異性逐漸增大", "B. 設備精度下降", "C. 製程平均值發生緩慢偏移", "D. 量測系統有問題"], "ans": "C", "expl": "X̄圖監控製程位置（均值），R圖監控散布（變異）；X̄趨勢+R穩定=均值漂移。"}, {"n": 62, "q": "%GR&R < 10% 代表量測系統的判斷結論是？", "opts": ["A. 量測系統不合格", "B. 需要改善，但可暫時使用", "C. 量測系統可接受", "D. 必須更換量具"], "ans": "C", "expl": "%GR&R<10%→可接受；10%~30%→條件性接受（視應用而定）；>30%→不合格，需改善。"}, {"n": 63, "q": "EWMA 管制圖中，加權參數 λ 越小時（如 λ=0.05），代表？", "opts": ["A. 只使用最新一個觀測值", "B. 對過去歷史資料給予更大權重，對小偏移更敏感", "C. 等同於Shewhart X圖", "D. 只考慮最近3個觀測值"], "ans": "B", "expl": "λ小→大量歷史平均→EWMA對小且持續偏移敏感；λ=1時EWMA=Shewhart個別值圖。"}, {"n": 64, "q": "Pp（Process Performance Index）與 Cp 的主要差異是？", "opts": ["A. Pp使用 R̄/d₂ 估算短期σ", "B. Cp使用整體標準差 s 評估長期績效", "C. Pp使用整體標準差 s，反映長期製程績效", "D. 兩者在公式上完全相同"], "ans": "C", "expl": "Cp=短期能力（組內σ=R̄/d₂）；Pp=長期績效（整體s）；通常 Pp≤Cp。"}, {"n": 65, "q": "個別值管制圖（X-MR）最適用的情境是？", "opts": ["A. 每批量測4~5個樣本", "B. 每次只有一個量測值（化學製程、長週期生產）", "C. 計數型不良率資料", "D. 批量很大且需快速決策"], "ans": "B", "expl": "X-MR圖用於無法形成子群的製程（每次一個量測），MR圖用相鄰兩點的差估計變異。"}, {"n": 66, "q": "管制圖「穩定製程（In Control）」的定義是？", "opts": ["A. 所有產品均在規格界限內", "B. 製程只有普通原因（Common Cause）變異", "C. Cpk ≥ 1.33", "D. 連續20點都在管制界限以內"], "ans": "B", "expl": "管制狀態=只有隨機普通原因，無特殊原因；與規格和Cpk無直接關係。"}, {"n": 67, "q": "np 管制圖的使用前提條件是？", "opts": ["A. 不良率必須恆定", "B. 每次抽樣的樣本數 n 必須固定", "C. 批量大小必須固定", "D. 缺點數必須服從常態分配"], "ans": "B", "expl": "np圖需固定n，因為CL=np̄，若n變動則中心線也變動，應改用p圖。"}, {"n": 68, "q": "DMAIC 中「C（Control）」階段最核心的工具是？", "opts": ["A. 迴歸分析（Regression）", "B. 變異數分析（ANOVA）", "C. 管制計畫（Control Plan）與 SPC 管制圖", "D. 量測系統分析（MSA）"], "ans": "C", "expl": "Control階段=維持改善成果，核心工具：管制計畫、SPC管制圖、標準作業程序（SOP）。"}, {"n": 69, "q": "Cpk 公式中，CPU（上方製程能力）= ？", "opts": ["A. (μ − LSL) / (3σ)", "B. (USL − μ) / (3σ)", "C. (USL − LSL) / (6σ)", "D. (USL − LSL) / (3σ)"], "ans": "B", "expl": "CPU=(USL−μ)/(3σ)；CPL=(μ−LSL)/(3σ)；Cpk=min(CPU,CPL)；Cp=(USL−LSL)/(6σ)。"}, {"n": 70, "q": "CUSUM 管制圖（Cumulative Sum）判斷失控最常使用的方法是？", "opts": ["A. 傳統 ±3σ 管制界限", "B. V型遮罩（V-Mask）或決策區間（h 和 k 參數）", "C. A₂, D₃, D₄ 係數表", "D. 相關係數 r 值"], "ans": "B", "expl": "CUSUM使用V型遮罩（V-Mask）或決策區間（決策參數h=允許漂移寬度，k=參考值）。"}];
+const CALC = [{"n": 71, "ch": "品質成本 PAF 分析", "q": "某公司月產量 10,000 件，品質成本：預防 NT$45,000、鑑定 NT$72,000、內部失敗 NT$105,000、外部失敗 NT$78,000。試計算：(1) 總品質成本 (2) 失敗成本占比 (3) 每件品質成本。", "given": "預防$45K, 鑑定$72K, 內部失敗$105K, 外部失敗$78K, 月產量10,000件", "steps": ["總品質成本 = 45,000 + 72,000 + 105,000 + 78,000 = NT$300,000", "失敗成本 = 105,000 + 78,000 = NT$183,000", "失敗成本占比 = 183,000 / 300,000 × 100% = 61.0%", "每件品質成本 = 300,000 / 10,000 = NT$30 / 件"], "ans": "總品質成本 NT$300,000；失敗成本占 61.0%；每件品質成本 NT$30"}, {"n": 72, "ch": "田口品質損失函數", "q": "田口損失函數 L(y)=k(y−m)²，修理費用 A=NT$800，功能界限 Δ=0.4mm，目標值 m=50.0mm，量測值 y=50.3mm。試計算：(1) k (2) L(y)。", "given": "A=NT$800, Δ=0.4mm, m=50.0mm, y=50.3mm", "steps": ["k = A / Δ² = 800 / (0.4)² = 800 / 0.16 = 5,000 NT$/mm²", "偏差量：y − m = 50.3 − 50.0 = 0.3 mm", "L(y) = k × (y−m)² = 5,000 × (0.3)² = 5,000 × 0.09 = NT$450"], "ans": "k = 5,000 NT$/mm²；L(y) = NT$450"}, {"n": 73, "ch": "品質改善 ROI", "q": "改善前月失敗成本 NT$240,000，投入預防成本 NT$50,000 後，失敗成本降至 NT$90,000。試計算：(1) 每月節省金額 (2) ROI（%）。", "given": "改善前失敗=$240K, 投入預防=$50K, 改善後失敗=$90K", "steps": ["每月節省 = 240,000 − 90,000 = NT$150,000", "淨效益 = 節省額 − 投入 = 150,000 − 50,000 = NT$100,000", "ROI = 100,000 / 50,000 × 100% = 200%"], "ans": "每月節省 NT$150,000；ROI = 200%"}, {"n": 74, "ch": "FMEA RPN 計算", "q": "三種失效模式：A(S=7,O=5,D=6)、B(S=9,O=4,D=7)、C(S=6,O=8,D=5)。計算各RPN、找出優先改善項，及B的D改善至3後的新RPN。", "given": "A: S=7,O=5,D=6；B: S=9,O=4,D=7；C: S=6,O=8,D=5", "steps": ["RPN_A = 7 × 5 × 6 = 210", "RPN_B = 9 × 4 × 7 = 252（最高，優先改善）", "RPN_C = 6 × 8 × 5 = 240", "改善後 B 的 D 降至 3：RPN_B_new = 9 × 4 × 3 = 108（降低 57%）"], "ans": "RPN: A=210, B=252（最高，優先）, C=240；改善後 B 的 RPN=108"}, {"n": 75, "ch": "GR&R 量測系統分析", "q": "MSA 研究：重複性 EV=0.15，再現性 AV=0.10，零件間變異 PV=0.35。計算：(1) GR&R (2) TV (3) %GR&R (4) 判斷結論。", "given": "EV=0.15, AV=0.10, PV=0.35（標準差單位）", "steps": ["GR&R = √(EV² + AV²) = √(0.0225+0.01) = √0.0325 ≈ 0.1803", "TV = √(GR&R² + PV²) = √(0.0325+0.1225) = √0.155 ≈ 0.3937", "%GR&R = (0.1803 / 0.3937) × 100% ≈ 45.8%", "判斷：%GR&R = 45.8% > 30% → 量測系統不合格，必須改善"], "ans": "GR&R≈0.180；%GR&R≈45.8% → 不合格（>30%），量測系統需改善"}, {"n": 76, "ch": "製程均值對準改善", "q": "製程 X~N(25.5, 1.0²)，USL=28, LSL=22。改善後 μ→25.0，σ不變。計算：(1) 改善前 Cpk (2) 改善前良率 (3) 改善後 Cpk (4) 改善後良率。（Φ(2.5)=0.9938, Φ(3.0)=0.9987）", "given": "改善前 μ=25.5, σ=1.0；改善後 μ=25.0；USL=28, LSL=22", "steps": ["改善前：CPU=(28−25.5)/3=0.833；CPL=(25.5−22)/3=1.167", "改善前 Cpk = min(0.833, 1.167) = 0.833", "改善前良率 = Φ(2.5)−Φ(−3.5) = 0.9938−0.0002 = 99.36%", "改善後：CPU=CPL=(28−25)/3=1.000；Cpk=1.000", "改善後良率 = Φ(3.0)−Φ(−3.0) = 0.9987−0.0013 = 99.74%"], "ans": "改善前 Cpk=0.833，良率99.36%；改善後 Cpk=1.000，良率99.74%"}, {"n": 77, "ch": "MSA 量具偏差分析", "q": "標準件參考值=50.00mm，5次量測：49.85, 50.10, 49.95, 50.05, 50.05，規格寬度 T=10mm。計算：(1) 量測均值 (2) Bias (3) %Bias (4) 判斷。", "given": "參考值=50.00mm, 量測值：49.85/50.10/49.95/50.05/50.05, T=10mm", "steps": ["X̄ = (49.85+50.10+49.95+50.05+50.05) / 5 = 250.00/5 = 50.00 mm", "Bias = X̄ − 參考值 = 50.00 − 50.00 = 0.00 mm", "%Bias = |0| / 10 × 100% = 0.0%", "判斷：Bias=0，量具無系統性偏差，量測準確性良好"], "ans": "X̄=50.00mm，Bias=0，%Bias=0%，量具無系統偏差"}, {"n": 78, "ch": "X̄-R 管制界限計算", "q": "n=5（A₂=0.577, D₃=0, D₄=2.114），X̄̄=25.40, R̄=1.20。計算 X̄ 圖與 R 圖的管制界限（UCL/LCL）。", "given": "n=5, A₂=0.577, D₃=0, D₄=2.114, X̄̄=25.40, R̄=1.20", "steps": ["UCL_X̄ = X̄̄ + A₂R̄ = 25.40 + 0.577×1.20 = 25.40 + 0.692 = 26.09", "LCL_X̄ = X̄̄ − A₂R̄ = 25.40 − 0.692 = 24.71", "UCL_R = D₄ × R̄ = 2.114 × 1.20 = 2.54", "LCL_R = D₃ × R̄ = 0 × 1.20 = 0（n≤6 時 D₃=0）"], "ans": "UCL_X̄=26.09，LCL_X̄=24.71，UCL_R=2.54，LCL_R=0"}, {"n": 79, "ch": "p 管制圖計算", "q": "10批，每批 n=200，總不良品=120件；某批不良12件。計算：(1) p̄ (2) σ_p (3) UCL_p (4) LCL_p (5) 判斷該批是否失控。", "given": "k=10批, n=200, 總不良=120件, 特定批不良=12件", "steps": ["p̄ = 120 / (10×200) = 0.060", "σ_p = √(0.06×0.94/200) = √0.000282 ≈ 0.01679", "UCL_p = 0.060 + 3×0.01679 = 0.110", "LCL_p = 0.060 − 0.050 = 0.010", "特定批 p=12/200=0.060，0.010<0.060<0.110 → 在管制內 ✓"], "ans": "p̄=0.060，UCL_p=0.110，LCL_p=0.010；特定批在管制內"}, {"n": 80, "ch": "c 管制圖計算", "q": "20片PCB缺點數：3,5,2,4,6,3,4,2,5,3,4,3,2,6,4,5,3,4,2,4。計算 c̄、UCL_c、LCL_c，判斷6個缺點是否失控。", "given": "20片PCB缺點數：3,5,2,4,6,3,4,2,5,3,4,3,2,6,4,5,3,4,2,4", "steps": ["總缺點數=3+5+2+4+6+3+4+2+5+3+4+3+2+6+4+5+3+4+2+4=74", "c̄ = 74/20 = 3.70", "UCL_c = 3.70 + 3√3.70 = 3.70 + 3×1.924 = 9.47", "LCL_c = 3.70 − 5.77 = −2.07 → 取 0", "c=6 < UCL=9.47 → 在管制內 ✓"], "ans": "c̄=3.70，UCL_c=9.47，LCL_c=0；c=6在管制內"}, {"n": 81, "ch": "柏拉圖累積百分比", "q": "缺陷次數：A=85, B=42, C=28, D=15, E=10, 其他=20。計算各項百分比、累積百分比，依80/20法則找出重點改善項目。", "given": "A=85, B=42, C=28, D=15, E=10, 其他=20次", "steps": ["總次數 = 85+42+28+15+10+20 = 200", "各項%：A=42.5%, B=21.0%, C=14.0%, D=7.5%, E=5.0%, 其他=10%", "累積%：A=42.5%，A+B=63.5%，A+B+C=77.5%，A+B+C+D=85.0%", "依80%法則，前三項（A+B+C）累積77.5%，為重點改善對象"], "ans": "重點改善：A（42.5%）、B（21.0%）、C（14.0%），合計77.5%"}, {"n": 82, "ch": "直方圖組距計算", "q": "n=100筆，最大值=52.8，最小值=44.2。計算：(1) 建議組數 (2) 組距，並列出10個組別範圍（起始值=44.0）。", "given": "n=100, Max=52.8, Min=44.2, 起始值=44.0", "steps": ["建議組數 ≈ √n = √100 = 10 組", "全距 = 52.8 − 44.2 = 8.6", "組距 = 8.6 / 10 = 0.86 → 取 0.9", "組別：[44.0,44.9), [44.9,45.8), ... [52.1,53.0)，共10組"], "ans": "10組，組距=0.9，組別範圍[44.0~53.0)"}, {"n": 83, "ch": "二項分配計算", "q": "不良率 p=0.05，抽取 n=10件。計算：(1) P(X=0) (2) P(X=1) (3) P(X≤1)。（0.95¹⁰≈0.5987, 0.95⁹≈0.6302）", "given": "p=0.05, n=10；0.95¹⁰=0.5987, 0.95⁹=0.6302", "steps": ["P(X=0) = C(10,0)×0.05⁰×0.95¹⁰ = 1×0.5987 ≈ 59.87%", "P(X=1) = C(10,1)×0.05¹×0.95⁹ = 10×0.05×0.6302 = 0.3151 ≈ 31.51%", "P(X≤1) = 0.5987 + 0.3151 = 0.9138 ≈ 91.38%"], "ans": "P(0件)≈59.87%，P(1件)≈31.51%，P(≤1件)≈91.38%"}, {"n": 84, "ch": "泊松分配計算", "q": "設備每小時平均故障 λ=0.5 次。計算：(1) P(X=0) (2) P(X=1) (3) P(X≥2)。（e⁻⁰·⁵≈0.6065）", "given": "X~Poisson(λ=0.5), e⁻⁰·⁵=0.6065", "steps": ["P(X=0) = e⁻⁰·⁵ = 0.6065 ≈ 60.65%", "P(X=1) = 0.5×e⁻⁰·⁵ = 0.5×0.6065 = 0.3033 ≈ 30.33%", "P(X≥2) = 1−0.6065−0.3033 = 0.0902 ≈ 9.02%"], "ans": "P(0次)≈60.65%，P(1次)≈30.33%，P(≥2次)≈9.02%"}, {"n": 85, "ch": "超幾何分配計算", "q": "N=20件中含 D=4件不良，無放回抽取 n=5件。計算：(1) P(X=0) (2) P(X≥1)。（C(16,5)=4368, C(20,5)=15504）", "given": "N=20, D=4, n=5；C(16,5)=4368, C(20,5)=15504", "steps": ["P(X=0) = C(4,0)×C(16,5)/C(20,5) = 1×4368/15504 = 4368/15504", "P(X=0) = 0.2817 ≈ 28.17%", "P(X≥1) = 1−0.2817 = 0.7183 ≈ 71.83%"], "ans": "P(0件不良)≈28.17%，P(至少1件不良)≈71.83%"}, {"n": 86, "ch": "常態分配良率計算", "q": "X~N(μ=100, σ=2)，USL=105, LSL=95。計算：(1) Z值 (2) 良率 (3) 不良率（PPM）。（Φ(2.5)=0.9938）", "given": "μ=100, σ=2, USL=105, LSL=95；Φ(2.5)=0.9938", "steps": ["Z_upper = (105−100)/2 = 2.5；Z_lower = (100−95)/2 = 2.5", "良率 = 2×Φ(2.5)−1 = 2×0.9938−1 = 0.9876 = 98.76%", "不良率 = 1−0.9876 = 0.0124 = 1.24% = 12,400 PPM"], "ans": "良率=98.76%，不良率=1.24%（12,400 PPM）"}, {"n": 87, "ch": "t 信賴區間計算", "q": "n=25件，X̄=48.2mm，s=1.5mm，求 95% CI。（t₀.₀₂₅,₂₄=2.064）", "given": "n=25, X̄=48.2mm, s=1.5mm, t₀.₀₂₅,₂₄=2.064", "steps": ["SE = s/√n = 1.5/5 = 0.300", "ME = t×SE = 2.064×0.300 = 0.619 mm", "下界 = 48.2−0.619 = 47.58 mm", "上界 = 48.2+0.619 = 48.82 mm"], "ans": "95% CI = (47.58, 48.82) mm"}, {"n": 88, "ch": "抽樣允收機率計算", "q": "抽樣計畫 n=50, c=2，p=0.04。使用泊松近似（λ=np）計算允收機率 Pa。（e⁻²≈0.1353）", "given": "n=50, c=2, p=0.04; λ=np=2.0; e⁻²=0.1353", "steps": ["λ = 50×0.04 = 2.0（泊松近似）", "P(X=0) = e⁻² = 0.1353", "P(X=1) = 2×e⁻² = 0.2707", "P(X=2) = (4/2)×e⁻² = 0.2707", "Pa = 0.1353+0.2707+0.2707 = 0.6767 ≈ 67.7%"], "ans": "允收機率 Pa ≈ 67.7%"}, {"n": 89, "ch": "ATI 平均全檢數計算", "q": "承接Q88：n=50, c=2, N=1000, Pa=0.677。計算 ATI 並解讀。", "given": "n=50, N=1000, Pa=0.677", "steps": ["ATI = n + (1−Pa)(N−n)", "ATI = 50 + (1−0.677)×(1000−50)", "ATI = 50 + 0.323×950 = 50 + 306.9", "ATI ≈ 357件（約佔批量35.7%）"], "ans": "ATI ≈ 357件"}, {"n": 90, "ch": "Cp 與 Cpk 計算", "q": "μ=50.2, σ=0.5, USL=52, LSL=48。計算 Cp、CPU、CPL、Cpk，並判斷製程等級。", "given": "μ=50.2, σ=0.5, USL=52, LSL=48", "steps": ["Cp = (52−48)/(6×0.5) = 4/3.0 = 1.333", "CPU = (52−50.2)/(3×0.5) = 1.8/1.5 = 1.200", "CPL = (50.2−48)/(3×0.5) = 2.2/1.5 = 1.467", "Cpk = min(1.200, 1.467) = 1.200", "1.0 < Cpk=1.200 < 1.33 → 有能力但不符 IATF 要求（需≥1.33）"], "ans": "Cp=1.333，Cpk=1.200；不符 IATF 16949 要求（需Cpk≥1.33）"}, {"n": 91, "ch": "R̄/d₂ 估算製程標準差", "q": "n=4（d₂=2.059, D₄=2.282, D₃=0），15組R值：2,3,1,4,2,3,2,1,3,2,4,3,2,1,3。計算 R̄、σ̂、UCL_R、LCL_R。", "given": "n=4, d₂=2.059, D₄=2.282, D₃=0；R值：2,3,1,4,2,3,2,1,3,2,4,3,2,1,3", "steps": ["ΣR = 2+3+1+4+2+3+2+1+3+2+4+3+2+1+3 = 36", "R̄ = 36/15 = 2.40", "σ̂ = R̄/d₂ = 2.40/2.059 ≈ 1.17", "UCL_R = D₄×R̄ = 2.282×2.40 = 5.48；LCL_R = 0"], "ans": "R̄=2.40，σ̂≈1.17，UCL_R≈5.48，LCL_R=0"}, {"n": 92, "ch": "Pp 與 Ppk 長期績效", "q": "長期 X̄=25.3，s=1.2，USL=29, LSL=22。計算 Pp、Ppu、Ppl、Ppk，並判斷。", "given": "X̄=25.3, s=1.2, USL=29, LSL=22", "steps": ["Pp = (29−22)/(6×1.2) = 7/7.2 = 0.972", "Ppu = (29−25.3)/(3×1.2) = 3.7/3.6 = 1.028", "Ppl = (25.3−22)/(3×1.2) = 3.3/3.6 = 0.917", "Ppk = min(1.028, 0.917) = 0.917", "Ppk=0.917 < 1.0 → 長期績效不足，需改善"], "ans": "Pp=0.972，Ppk=0.917；長期製程績效不符要求（Ppk<1.0）"}, {"n": 93, "ch": "EWMA 統計量計算", "q": "λ=0.3，z₀=50.0，前四個觀測值：51, 50, 52, 53。逐步計算 z₁～z₄ 並觀察趨勢。", "given": "λ=0.3, z₀=50.0；x₁=51, x₂=50, x₃=52, x₄=53", "steps": ["z₁ = 0.3×51 + 0.7×50.0 = 15.30+35.00 = 50.30", "z₂ = 0.3×50 + 0.7×50.30 = 15.00+35.21 = 50.21", "z₃ = 0.3×52 + 0.7×50.21 = 15.60+35.15 = 50.75", "z₄ = 0.3×53 + 0.7×50.75 = 15.90+35.53 = 51.43", "觀察：z₁~z₄呈上升趨勢，製程均值可能向上漂移"], "ans": "z₁=50.30, z₂=50.21, z₃=50.75, z₄=51.43（上升趨勢）"}, {"n": 94, "ch": "ndc 量具鑑別力計算", "q": "GR&R=0.20，PV=0.60。計算 ndc，判斷量測系統是否足夠。", "given": "GR&R=0.20, PV=0.60", "steps": ["ndc = 1.41 × (PV / GR&R) = 1.41 × (0.60/0.20) = 1.41 × 3.0 = 4.23", "ndc = 4.23 < 5 → 量具鑑別力不足", "ndc<5 代表量測系統無法有效分辨≥5個不同類別的零件差異", "改善建議：提升量具解析度或降低 GR&R"], "ans": "ndc ≈ 4.23 < 5 → 量具鑑別力不足，需改善"}, {"n": 95, "ch": "抽樣計畫查表應用", "q": "N=500，GIS II，AQL=2.5%，正常單次抽樣（ANSI Z1.4）。確定：(1) 樣本代字 (2) n (3) Ac (4) Re。", "given": "N=500, GIS II, AQL=2.5%, 正常單次抽樣", "steps": ["N=281~500，GIS II → 樣本代字 = H", "代字H，正常單次抽樣表 → n = 50", "AQL=2.5% → Ac=3, Re=4", "結論：抽50件，不良≤3→允收；≥4→拒收"], "ans": "樣本代字H，n=50，Ac=3，Re=4"}, {"n": 96, "ch": "製程偏移對良率的影響", "q": "σ=0.3, USL=10.0, LSL=8.0；原居中μ=9.0，後偏移至μ=9.45。計算原始良率與偏移後上方不良率。（Φ(3.33)=0.9996, Φ(1.83)=0.9664）", "given": "σ=0.3, USL=10.0, LSL=8.0；居中μ=9.0；偏移後μ=9.45", "steps": ["居中：Z=(10−9)/0.3=3.33；良率=2×0.9996−1=99.92%", "偏移後：Z_upper=(10.0−9.45)/0.3=1.833", "P(X>USL) = 1−Φ(1.833) ≈ 1−0.9664 = 3.36%", "結論：偏移1.5σ後不良率從0.08%劇增至約3.36%（增加約42倍）"], "ans": "居中良率≈99.92%；偏移後上方不良率≈3.36%（增加約42倍）"}, {"n": 97, "ch": "製程改善 Cpk 提升計算", "q": "改善前：μ=82, σ=3.5, USL=92, LSL=74。σ降低25%後（σ_new=2.625），μ不變。計算改善前後 Cpk 及提升百分比。", "given": "μ=82, USL=92, LSL=74；改善前σ=3.5，改善後σ=2.625", "steps": ["改善前：CPU=(92−82)/10.5=0.952；CPL=(82−74)/10.5=0.762", "改善前 Cpk = min(0.952, 0.762) = 0.762", "改善後：CPU=(92−82)/7.875=1.270；CPL=(82−74)/7.875=1.016", "改善後 Cpk = min(1.270, 1.016) = 1.016", "提升% = (1.016−0.762)/0.762×100% ≈ 33.3%"], "ans": "改善前Cpk=0.762，改善後Cpk=1.016，提升33.3%"}, {"n": 98, "ch": "X̄-s 管制圖計算", "q": "n=10（B₃=0.284, B₄=1.716, A₃=0.975），5組：X̄: 24.5,25.1,24.8,25.3,24.9；s: 0.52,0.61,0.48,0.55,0.58。計算管制界限。", "given": "n=10, B₃=0.284, B₄=1.716, A₃=0.975；5組數據", "steps": ["X̄̄ = (24.5+25.1+24.8+25.3+24.9)/5 = 124.6/5 = 24.92", "s̄ = (0.52+0.61+0.48+0.55+0.58)/5 = 0.548", "UCL_X̄ = 24.92+0.975×0.548=25.45；LCL_X̄=24.39", "UCL_s = 1.716×0.548=0.940；LCL_s=0.284×0.548=0.156"], "ans": "UCL_X̄=25.45, LCL_X̄=24.39；UCL_s=0.940, LCL_s=0.156"}, {"n": 99, "ch": "滾動良率 RTY 計算", "q": "3站良率：Y₁=0.95, Y₂=0.92, Y₃=0.98，日產量1000件。計算：(1) RTY (2) 通過件數 (3) 若要RTY≥90%，Y₁需多少？", "given": "Y₁=0.95, Y₂=0.92, Y₃=0.98, 日產量1000件", "steps": ["RTY = 0.95×0.92×0.98 = 0.8565 ≈ 85.65%", "日通過件數 = 1000×0.8565 ≈ 857件", "Y₁×0.92×0.98 ≥ 0.90 → Y₁ ≥ 0.90/0.9016 = 0.9982", "即 Y₁ 需達 99.82%"], "ans": "RTY≈85.65%，通過857件；Y₁需≥99.82%才能使RTY≥90%"}, {"n": 100, "ch": "製程能力與σ水準綜合", "q": "μ=500, σ=10, USL=530, LSL=470。計算：(1) Cp (2) Cpk (3) σ水準 (4) 達6σ所需σ值。", "given": "μ=500, σ=10, USL=530, LSL=470", "steps": ["Cp = (530−470)/(6×10) = 60/60 = 1.0", "CPU = CPL = (530−500)/(3×10) = 1.0；Cpk = 1.0（居中）", "3σ水準，不良率≈0.27%（2,700 PPM）", "達6σ（Cpk=2.0）：(530−500)/(3σ)=2.0 → σ=5.0", "即 σ 需從 10 降至 5（降低50%）"], "ans": "Cp=Cpk=1.0（3σ水準）；達6σ需σ降至5.0（不良率從2700 PPM→0.0002 PPM）"}];
+
+const CHAPTERS = {
+  1:"品質基本概念", 2:"品質系統與管理", 3:"QC七手法",
+  4:"抽樣檢驗", 5:"機率分配", 6:"製程管制與能力"
+};
+function getChapter(n) {
+  if(n<=11) return "Ch1 品質基本概念";
+  if(n<=23) return "Ch2 品質系統與管理";
+  if(n<=35) return "Ch3 QC七手法";
+  if(n<=46) return "Ch4 抽樣檢驗";
+  if(n<=58) return "Ch5 機率分配";
+  return "Ch6 製程管制";
+}
+
+let state = {
+  mode: 'practice',
+  section: 'mcq',
+  currentQ: 1,
+  answers: {},     // MCQ: {1:'C', 2:'B',...}
+  calcRevealed: {}, // {71:true,...}
+  calcChecked: {},  // {71:true,...} self-check
+  seconds: 0,
+  timerRef: null,
+  started: false
+};
+
+function selectMode(m, btn) {
+  state.mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function startExam() {
+  document.getElementById('start').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('mode-badge').textContent = state.mode==='practice'?'練習模式':'考試模式';
+  buildDots();
+  renderQuestion();
+  startTimer();
+}
+
+function startTimer() {
+  state.timerRef = setInterval(()=>{
+    state.seconds++;
+    const m=Math.floor(state.seconds/60).toString().padStart(2,'0');
+    const s=(state.seconds%60).toString().padStart(2,'0');
+    const el=document.getElementById('timer');
+    el.textContent=m+':'+s;
+    if(state.seconds>=9000) el.classList.add('warn');
+  },1000);
+}
+
+function goHome() {
+  if(!confirm('返回首頁將清除目前作答，確定嗎？')) return;
+  clearInterval(state.timerRef);
+  location.reload();
+}
+
+function buildDots() {
+  const mc=document.getElementById('dots-mcq');
+  const cc=document.getElementById('dots-calc');
+  mc.innerHTML=''; cc.innerHTML='';
+  MCQ.forEach(q=>{
+    const d=document.createElement('button');
+    d.className='q-dot';
+    d.id='dot-'+q.n;
+    d.textContent=q.n;
+    d.onclick=()=>{state.section='mcq';navigateTo(q.n);};
+    mc.appendChild(d);
+  });
+  CALC.forEach(q=>{
+    const d=document.createElement('button');
+    d.className='q-dot';
+    d.id='dot-'+q.n;
+    d.textContent=q.n;
+    d.onclick=()=>{state.section='calc';navigateTo(q.n);};
+    cc.appendChild(d);
+  });
+}
+
+function updateDots() {
+  MCQ.forEach(q=>{
+    const d=document.getElementById('dot-'+q.n);
+    if(!d) return;
+    d.className='q-dot';
+    const a=state.answers[q.n];
+    if(a) {
+      if(state.mode==='practice') {
+        d.classList.add(a===q.ans?'correct':'wrong');
+      } else {
+        d.classList.add('answered');
+      }
+    }
+    if(state.section==='mcq'&&state.currentQ===q.n) d.classList.add('current');
+  });
+  CALC.forEach(q=>{
+    const d=document.getElementById('dot-'+q.n);
+    if(!d) return;
+    d.className='q-dot';
+    if(state.calcRevealed[q.n]) d.classList.add('answered');
+    if(state.calcChecked[q.n]) d.classList.add('correct');
+    if(state.section==='calc'&&state.currentQ===q.n) d.classList.add('current');
+  });
+  // Stats
+  const correct=MCQ.filter(q=>state.answers[q.n]===q.ans).length;
+  const wrong=MCQ.filter(q=>state.answers[q.n]&&state.answers[q.n]!==q.ans).length;
+  const calcDone=Object.values(state.calcChecked).filter(Boolean).length;
+  document.getElementById('stat-correct').textContent=correct;
+  document.getElementById('stat-wrong').textContent=wrong;
+  document.getElementById('stat-calc').textContent=calcDone+'/30';
+  const answered=Object.keys(state.answers).length;
+  document.getElementById('score-badge').textContent=answered+'/70 答';
+  document.getElementById('mcq-tab-count').textContent=answered+'/70';
+  document.getElementById('calc-tab-count').textContent=Object.keys(state.calcRevealed).length+'/30';
+  // Progress (combined)
+  const pct=((answered+Object.keys(state.calcRevealed).length)/100)*100;
+  document.getElementById('prog').style.width=pct+'%';
+}
+
+function switchSection(sec) {
+  state.section=sec;
+  document.getElementById('tab-mcq').classList.toggle('active',sec==='mcq');
+  document.getElementById('tab-calc').classList.toggle('active',sec==='calc');
+  if(sec==='mcq') state.currentQ=MCQ[0].n;
+  else state.currentQ=CALC[0].n;
+  renderQuestion();
+}
+
+function navigateTo(n) {
+  state.currentQ=n;
+  document.getElementById('tab-mcq').classList.toggle('active',state.section==='mcq');
+  document.getElementById('tab-calc').classList.toggle('active',state.section==='calc');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  updateDots();
+  const c=document.getElementById('content');
+  if(state.section==='mcq') {
+    const q=MCQ.find(x=>x.n===state.currentQ)||MCQ[0];
+    renderMCQ(q,c);
+  } else {
+    const q=CALC.find(x=>x.n===state.currentQ)||CALC[0];
+    renderCalc(q,c);
+  }
+  window.scrollTo(0,0);
+  document.getElementById('content').scrollTop=0;
+}
+
+function renderMCQ(q,c) {
+  const answered=state.answers[q.n];
+  const isCorrect=answered&&answered===q.ans;
+  const showAnswer=state.mode==='practice'&&answered;
+  
+  c.innerHTML=`
+    <div class="q-card">
+      <div class="q-header">
+        <div class="q-num">Q${q.n}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.95rem;">${q.q.length>60?'':''}</div>
+          <div class="q-chapter">${getChapter(q.n)}</div>
+        </div>
+        ${answered&&state.mode==='practice'?`<div style="font-size:1.4rem">${isCorrect?'✅':'❌'}</div>`:''}
+      </div>
+      <div class="q-body">
+        <div class="q-text">${q.q}</div>
+        <div class="options" id="opts-${q.n}">
+          ${q.opts.map((opt,i)=>{
+            const letter=opt[0];
+            let cls='opt-btn';
+            if(answered) {
+              if(letter===q.ans&&state.mode==='practice') cls+=' correct';
+              else if(letter===answered&&answered!==q.ans&&state.mode==='practice') cls+=' wrong';
+              else if(letter===answered) cls+=' selected';
+            }
+            return `<button class="${cls}" ${answered?'disabled':''} onclick="selectOpt(${q.n},'${letter}')">${opt}</button>`;
+          }).join('')}
+        </div>
+        ${showAnswer?`<div class="expl-box show">💡 <b>解析：</b>${q.expl}</div>`:''}
+        ${answered&&state.mode==='exam'?`<div class="exam-note">✅ 已作答完畢。所有解析將在查看成績後顯示。</div>`:''}
+      </div>
+    </div>
+    <div class="q-nav">
+      <button class="nav-btn" onclick="prevQ()" ${(state.section==='mcq'&&q.n===1)||(state.section==='calc'&&q.n===71)?'disabled':''}>← 上一題</button>
+      <span class="q-counter">第 ${state.section==='mcq'?q.n:q.n-70} / ${state.section==='mcq'?70:30} 題</span>
+      <button class="nav-btn primary" onclick="nextQ()">${isLastQ()?'📊 查看成績':'下一題 →'}</button>
+    </div>`;
+}
+
+function renderCalc(q,c) {
+  const revealed=state.calcRevealed[q.n];
+  const checked=state.calcChecked[q.n];
+  c.innerHTML=`
+    <div class="q-card">
+      <div class="q-header">
+        <div class="q-num">Q${q.n}</div>
+        <div style="flex:1">
+          <div class="q-chapter">計算題 — ${q.ch}</div>
+        </div>
+        ${revealed?'<div style="font-size:1.1rem;color:#a0c4e8;">✅ 已查看解答</div>':''}
+      </div>
+      <div class="q-body">
+        <div class="calc-q-box">${q.q}</div>
+        <div class="given-box">
+          <div class="given-label">📌 已知條件</div>
+          <div>${q.given}</div>
+        </div>
+        <div class="work-area">
+          <div class="work-label">✏ 計算作答區</div>
+          <textarea placeholder="在此輸入計算過程..." id="work-${q.n}">${(window._calcWork&&window._calcWork[q.n])||''}</textarea>
+        </div>
+        <div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;">
+          <button class="reveal-btn" onclick="revealCalc(${q.n})">${revealed?'🔍 重看解答':'📖 查看解答'}</button>
+          ${revealed?`
+          <label class="calc-self-check">
+            <input type="checkbox" ${checked?'checked':''} onchange="toggleCalcCheck(${q.n},this.checked)">
+            我計算正確 ✓
+          </label>`:''};
+        </div>
+        <div class="solution-box ${revealed?'show':''}" id="sol-${q.n}">
+          <div class="sol-header">📐 解題步驟</div>
+          <div class="steps">
+            ${q.steps.map((s,i)=>`
+            <div class="step-row">
+              <div class="step-num">${i+1}</div>
+              <div class="step-text">${s}</div>
+            </div>`).join('')}
+          </div>
+          <div class="ans-banner">✓ 答案：${q.ans}</div>
+        </div>
+      </div>
+    </div>
+    <div class="q-nav">
+      <button class="nav-btn" onclick="prevQ()" ${q.n===71?'disabled':''}>← 上一題</button>
+      <span class="q-counter">計算題 第 ${q.n-70} / 30 題</span>
+      <button class="nav-btn primary" onclick="nextQ()">${isLastQ()?'📊 查看成績':'下一題 →'}</button>
+    </div>`;
+  // Save work area on input
+  document.getElementById('work-'+q.n)?.addEventListener('input',e=>{
+    if(!window._calcWork) window._calcWork={};
+    window._calcWork[q.n]=e.target.value;
+  });
+}
+
+function selectOpt(n, letter) {
+  if(state.answers[n]) return;
+  state.answers[n]=letter;
+  renderQuestion();
+  updateDots();
+}
+
+function revealCalc(n) {
+  state.calcRevealed[n]=true;
+  const sol=document.getElementById('sol-'+n);
+  if(sol) sol.classList.add('show');
+  renderQuestion();
+  updateDots();
+}
+
+function toggleCalcCheck(n, val) {
+  state.calcChecked[n]=val;
+  updateDots();
+}
+
+function isLastQ() {
+  if(state.section==='mcq') return state.currentQ===MCQ[MCQ.length-1].n;
+  return state.currentQ===CALC[CALC.length-1].n;
+}
+
+function prevQ() {
+  if(state.section==='mcq') {
+    const idx=MCQ.findIndex(q=>q.n===state.currentQ);
+    if(idx>0) state.currentQ=MCQ[idx-1].n;
+  } else {
+    const idx=CALC.findIndex(q=>q.n===state.currentQ);
+    if(idx>0) state.currentQ=CALC[idx-1].n;
+    else { state.section='mcq'; state.currentQ=MCQ[MCQ.length-1].n; }
+  }
+  renderQuestion();
+}
+
+function nextQ() {
+  if(isLastQ()) { showResults(); return; }
+  if(state.section==='mcq') {
+    const idx=MCQ.findIndex(q=>q.n===state.currentQ);
+    if(idx<MCQ.length-1) state.currentQ=MCQ[idx+1].n;
+    else { state.section='calc'; state.currentQ=CALC[0].n; }
+  } else {
+    const idx=CALC.findIndex(q=>q.n===state.currentQ);
+    if(idx<CALC.length-1) state.currentQ=CALC[idx+1].n;
+  }
+  renderQuestion();
+}
+
+function showResults() {
+  clearInterval(state.timerRef);
+  document.getElementById('app').style.display='none';
+  const el=document.getElementById('results');
+  el.style.display='block';
+  
+  const correct=MCQ.filter(q=>state.answers[q.n]===q.ans).length;
+  const wrong=MCQ.filter(q=>state.answers[q.n]&&state.answers[q.n]!==q.ans).length;
+  const unanswered=70-Object.keys(state.answers).length;
+  const calcScore=Object.values(state.calcChecked).filter(Boolean).length*2;
+  const mcqScore=correct;
+  const total=mcqScore+calcScore;
+  const pct=Math.round(total/130*100);
+  
+  const m=Math.floor(state.seconds/60);
+  const s=state.seconds%60;
+  const timeStr=m+'分'+s+'秒';
+  
+  let grade='',gradeColor='';
+  if(pct>=85){grade='優秀 🏆';gradeColor='#059669';}
+  else if(pct>=70){grade='通過 ✅';gradeColor='#0891B2';}
+  else if(pct>=60){grade='及格 📝';gradeColor='#E97316';}
+  else{grade='繼續加油 💪';gradeColor='#DC2626';}
+  
+  const wrongItems=MCQ.filter(q=>state.answers[q.n]&&state.answers[q.n]!==q.ans);
+  const unansweredItems=MCQ.filter(q=>!state.answers[q.n]);
+  
+  el.innerHTML=`
+    <div class="res-hero">
+      <div style="font-size:2.5rem;margin-bottom:.3rem;">📊 成績報告</div>
+      <div class="res-score">${total}</div>
+      <div class="res-total">/ 130 分（${pct}%）</div>
+      <div class="res-grade" style="color:${gradeColor}">${grade}</div>
+      <div style="font-size:.9rem;color:#a0c4e8;margin-top:.3rem;">用時：${timeStr}</div>
+      <div class="res-grid">
+        <div class="res-stat"><div class="res-stat-n">${mcqScore}/70</div><div class="res-stat-l">選擇題得分</div></div>
+        <div class="res-stat"><div class="res-stat-n">${calcScore}/60</div><div class="res-stat-l">計算題得分（自評）</div></div>
+        <div class="res-stat"><div class="res-stat-n">${correct}/${correct+wrong}</div><div class="res-stat-l">選擇題答對率</div></div>
+      </div>
+    </div>
+    
+    <div class="res-card">
+      <h3>🔍 選擇題詳細分析</h3>
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <span style="background:#dcfce7;color:#059669;padding:.3rem .7rem;border-radius:6px;font-size:.85rem;">✅ 答對 ${correct} 題</span>
+        <span style="background:#fee2e2;color:#dc2626;padding:.3rem .7rem;border-radius:6px;font-size:.85rem;">❌ 答錯 ${wrong} 題</span>
+        <span style="background:#fef3c7;color:#d97706;padding:.3rem .7rem;border-radius:6px;font-size:.85rem;">⬜ 未答 ${unanswered} 題</span>
+      </div>
+      ${wrongItems.length===0&&unansweredItems.length===0?'<div style="color:var(--green);font-weight:600;padding:1rem;text-align:center;">🎉 選擇題全部答對！</div>':''}
+      ${wrongItems.map(q=>`
+        <div class="review-item">
+          <div class="ri-icon">❌</div>
+          <div class="ri-q">
+            <b>Q${q.n} ${getChapter(q.n)}</b>
+            ${q.q}<br>
+            <small>您的答案：<span style="color:var(--red)">${state.answers[q.n]}</span>　正解：<span style="color:var(--green)">${q.ans}</span>　${q.expl}</small>
+          </div>
+        </div>`).join('')}
+      ${unansweredItems.map(q=>`
+        <div class="review-item">
+          <div class="ri-icon">⬜</div>
+          <div class="ri-q">
+            <b>Q${q.n} ${getChapter(q.n)} — 未作答</b>
+            ${q.q}<br><small>正解：<span style="color:var(--green)">${q.ans}</span>　${q.expl}</small>
+          </div>
+        </div>`).join('')}
+    </div>
+    
+    <div class="res-card">
+      <h3>🧮 計算題答案（自評參考）</h3>
+      ${CALC.map(q=>`
+        <div class="calc-review-item">
+          <div class="cri-q">Q${q.n} ${q.ch} ${state.calcChecked[q.n]?'✅':''} </div>
+          <div class="cri-ans">▶ ${q.ans}</div>
+        </div>`).join('')}
+    </div>
+    
+    <div style="text-align:center;padding:1.5rem 0 3rem;">
+      <button class="btn-retry" onclick="location.reload()">🔄 重新作答</button>
+    </div>`;
+}
+
+// Init
+document.getElementById('start').style.display='flex';
+document.getElementById('app').style.display='none';
+</script>
+</body>
+</html>
