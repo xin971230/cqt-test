@@ -337,6 +337,69 @@ main{flex:1;overflow-y:auto;padding:1.5rem;}
   }
   .clear-btn-sidebar:hover { background: #DC2626; color: white; }
 
+
+  /* Random quiz UI */
+  .mode-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:.8rem; margin:1.2rem 0; }
+  .random-setup { display:none; background:var(--bg); border-radius:12px; padding:1rem 1.2rem; margin:.5rem 0 1rem; }
+  .random-setup.visible { display:block; }
+  .rand-presets { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.8rem; }
+  .rand-preset { background:white; border:2px solid var(--lgray); color:var(--navy); border-radius:8px;
+    padding:.35rem .75rem; cursor:pointer; font-size:.85rem; font-weight:600; transition:.15s; font-family:inherit; }
+  .rand-preset.active,.rand-preset:hover { border-color:var(--teal); background:var(--teal); color:white; }
+  .rand-custom { display:flex; align-items:center; gap:.6rem; }
+  .rand-custom input { width:90px; padding:.4rem .6rem; border:2px solid var(--lgray); border-radius:8px;
+    font-size:.9rem; font-family:inherit; text-align:center; }
+  .rand-custom input:focus { outline:none; border-color:var(--teal); }
+  .rand-type-row { display:flex; gap:.6rem; margin-top:.7rem; flex-wrap:wrap; }
+  .rand-type-btn { padding:.3rem .7rem; border:2px solid var(--lgray); border-radius:6px; cursor:pointer;
+    font-size:.8rem; font-weight:600; font-family:inherit; background:white; color:var(--gray); transition:.15s; }
+  .rand-type-btn.active { border-color:var(--orange); background:var(--orange); color:white; }
+
+  /* Wrong answer panel */
+  #wrong-panel { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:2000; display:none;
+    align-items:flex-start; justify-content:flex-end; }
+  #wrong-panel.open { display:flex; }
+  .wrong-drawer { background:white; width:min(520px,100vw); height:100vh; overflow-y:auto;
+    box-shadow:-4px 0 24px rgba(0,0,0,.2); display:flex; flex-direction:column; }
+  .wrong-header { background:var(--navy); color:white; padding:1rem 1.2rem; display:flex;
+    align-items:center; justify-content:space-between; position:sticky; top:0; z-index:1; }
+  .wrong-header h2 { font-size:1.05rem; margin:0; }
+  .wrong-close { background:none; border:none; color:white; font-size:1.4rem; cursor:pointer; line-height:1; }
+  .wrong-toolbar { padding:.8rem 1rem; border-bottom:1px solid var(--lgray); display:flex; gap:.6rem; flex-wrap:wrap; }
+  .wrong-list { flex:1; padding:.8rem 1rem; }
+  .wrong-card { border:1px solid var(--lgray); border-radius:10px; margin-bottom:.8rem; overflow:hidden; }
+  .wrong-card-head { background:var(--bg); padding:.55rem .9rem; display:flex;
+    align-items:center; justify-content:space-between; }
+  .wrong-badge { font-size:.72rem; background:#FEE2E2; color:#DC2626; padding:.15rem .5rem;
+    border-radius:20px; font-weight:700; }
+  .wrong-card-body { padding:.7rem .9rem; font-size:.88rem; }
+  .wrong-q { font-weight:600; color:var(--dark); margin-bottom:.4rem; line-height:1.45; }
+  .wrong-ans-row { display:flex; gap:.5rem; margin-top:.4rem; flex-wrap:wrap; }
+  .wrong-my { background:#FEE2E2; color:#DC2626; padding:.2rem .6rem; border-radius:6px; font-size:.8rem; }
+  .wrong-correct { background:#DCFCE7; color:#059669; padding:.2rem .6rem; border-radius:6px; font-size:.8rem; }
+  .wrong-expl { background:var(--bg); border-radius:6px; padding:.4rem .6rem; font-size:.8rem;
+    color:var(--gray); margin-top:.4rem; line-height:1.4; }
+  .wrong-del { background:none; border:none; color:var(--gray); cursor:pointer; font-size:.8rem; }
+  .wrong-del:hover { color:#DC2626; }
+  .wrong-empty { text-align:center; padding:3rem 1rem; color:var(--gray); }
+  .wrong-empty .big { font-size:2.5rem; margin-bottom:.5rem; }
+  .wrong-count-badge { background:#DC2626; color:white; border-radius:12px; font-size:.7rem;
+    font-weight:700; padding:.1rem .45rem; margin-left:.3rem; display:inline-block; min-width:18px; text-align:center; }
+  /* Wrong answer sidebar button */
+  .wrong-btn-sidebar { display:block; width:100%; margin-top:.4rem; padding:.4rem;
+    background:linear-gradient(135deg,#DC2626,#b91c1c); color:white; border:none;
+    border-radius:6px; cursor:pointer; font-size:.8rem; font-weight:600; font-family:inherit; }
+  .wrong-btn-sidebar:hover { background:#b91c1c; }
+  /* Start screen wrong button */
+  .wrong-start-btn { width:100%; padding:.65rem; background:white; border:2px solid #DC2626;
+    color:#DC2626; border-radius:10px; font-size:.95rem; font-weight:700; cursor:pointer;
+    margin-top:.5rem; font-family:inherit; transition:.15s; }
+  .wrong-start-btn:hover { background:#FEE2E2; }
+  @media (max-width:768px) {
+    .mode-grid-3 { grid-template-columns:1fr; }
+    .wrong-drawer { width:100vw; }
+    .rand-presets { gap:.35rem; }
+  }
 </style>
 </head>
 <body>
@@ -353,19 +416,48 @@ main{flex:1;overflow-y:auto;padding:1.5rem;}
       <div class="info-box"><b>⏱ 建議時間</b><span>150分鐘（可自行計時）</span></div>
     </div>
     <div style="font-weight:700;color:var(--navy);margin-bottom:.6rem;">選擇作答模式：</div>
-    <div class="mode-grid">
-      <button class="mode-btn selected" onclick="selectMode('practice',this)">
+    <div class="mode-grid-3">
+      <button class="mode-btn selected" onclick="selectMode('practice',this);hideRandSetup()">
         <div class="mode-icon">📚</div>
         <div class="mode-title">練習模式</div>
         <div class="mode-desc">每題作答後立即顯示正解與解析，邊做邊學</div>
       </button>
-      <button class="mode-btn" onclick="selectMode('exam',this)">
+      <button class="mode-btn" onclick="selectMode('exam',this);hideRandSetup()">
         <div class="mode-icon">📋</div>
         <div class="mode-title">考試模式</div>
         <div class="mode-desc">全部作答完畢後統一顯示成績與解析，模擬正式考試</div>
       </button>
     </div>
+      <button class="mode-btn" onclick="selectMode('random',this);showRandSetup()">
+        <div style="font-size:1.8rem">🎲</div>
+        <div class="mode-title">隨機測驗</div>
+        <div style="font-size:.8rem;color:var(--gray)">自選題數</div>
+      </button>
+    <!-- Random setup panel -->
+    <div class="random-setup" id="rand-setup">
+      <div style="font-weight:700;color:var(--navy);margin-bottom:.5rem;font-size:.92rem;">📌 抽題設定</div>
+      <div style="font-size:.82rem;color:var(--gray);margin-bottom:.5rem;">快速選題數：</div>
+      <div class="rand-presets" id="rand-presets">
+        <button class="rand-preset active" onclick="setRandCount(10,this)">10題</button>
+        <button class="rand-preset" onclick="setRandCount(20,this)">20題</button>
+        <button class="rand-preset" onclick="setRandCount(30,this)">30題</button>
+        <button class="rand-preset" onclick="setRandCount(50,this)">50題</button>
+        <button class="rand-preset" onclick="setRandCount(100,this)">100題</button>
+      </div>
+      <div class="rand-custom">
+        <span style="font-size:.85rem;color:var(--gray);">自訂：</span>
+        <input type="number" id="rand-input" min="1" max="300" value="10"
+          onchange="setRandCountCustom(this.value)" oninput="setRandCountCustom(this.value)">
+        <span style="font-size:.82rem;color:var(--gray);">題（最多300）</span>
+      </div>
+      <div class="rand-type-row">
+        <button class="rand-type-btn active" id="rtype-all" onclick="setRandType('all',this)">📚 全部混合</button>
+        <button class="rand-type-btn" id="rtype-mcq" onclick="setRandType('mcq',this)">📝 僅選擇題</button>
+        <button class="rand-type-btn" id="rtype-calc" onclick="setRandType('calc',this)">🧮 僅計算題</button>
+      </div>
+    </div>
     <button class="btn-start" onclick="startExam()">▶ 開始作答</button>
+    <button class="wrong-start-btn" onclick="openWrongPanel()">❌ 錯題本 <span id="wrong-count-start" class="wrong-count-badge" style="display:none">0</span></button>
   </div>
 </div>
 
@@ -400,6 +492,7 @@ main{flex:1;overflow-y:auto;padding:1.5rem;}
         </div>
       </div>
     
+    <button class="wrong-btn-sidebar" onclick="openWrongPanel()">❌ 錯題本 <span id="wrong-count-sidebar" class="wrong-count-badge" style="display:none">0</span></button>
     <button class="save-btn-sidebar" onclick="saveProgress(); showNotification('✓ 進度已儲存')">💾 儲存進度</button>
     <button class="clear-btn-sidebar" onclick="if(confirm('確定要清除所有進度記錄？'))clearProgress()">🗑️ 清除紀錄</button>
 
@@ -430,6 +523,10 @@ function getChapter(n) {
 
 let state = {
   mode: 'practice',
+  randCount: 10,
+  randType: 'all',
+  randomPool: [],
+  randomIdx: 0,
   section: 'mcq',
   currentQ: 1,
   answers: {},     // MCQ: {1:'C', 2:'B',...}
@@ -539,7 +636,280 @@ function checkResumeOnLoad() {
 }
 // ===== End localStorage =====
 
+
+// ===== RANDOM QUIZ =====
+let _randType = 'all';
+let _randCount = 10;
+
+function showRandSetup() {
+  document.getElementById('rand-setup').classList.add('visible');
+}
+function hideRandSetup() {
+  document.getElementById('rand-setup').classList.remove('visible');
+}
+function setRandCount(n, btn) {
+  _randCount = Math.min(n, 300);
+  document.getElementById('rand-input').value = _randCount;
+  document.querySelectorAll('.rand-preset').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+function setRandCountCustom(val) {
+  _randCount = Math.max(1, Math.min(parseInt(val)||10, 300));
+  document.querySelectorAll('.rand-preset').forEach(b => b.classList.remove('active'));
+}
+function setRandType(type, btn) {
+  _randType = type;
+  document.querySelectorAll('.rand-type-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Adjust max count
+  let maxQ = type==='mcq' ? MCQ.length : type==='calc' ? CALC.length : MCQ.length+CALC.length;
+  _randCount = Math.min(_randCount, maxQ);
+  document.getElementById('rand-input').value = _randCount;
+}
+
+function buildRandomPool(count, type) {
+  let pool = [];
+  if (type === 'all' || type === 'mcq') {
+    MCQ.forEach(q => pool.push({type:'mcq', n:q.n}));
+  }
+  if (type === 'all' || type === 'calc') {
+    CALC.forEach(q => pool.push({type:'calc', n:q.n}));
+  }
+  // Fisher-Yates shuffle
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, Math.min(count, pool.length));
+}
+
+function startRandomExam() {
+  state.randomPool = buildRandomPool(_randCount, _randType);
+  state.randomIdx = 0;
+  if (state.randomPool.length === 0) { alert('沒有可用題目！'); return; }
+  const first = state.randomPool[0];
+  state.section = first.type;
+  state.currentQ = first.n;
+  state.answers = {};
+  state.calcRevealed = {};
+  state.calcChecked = {};
+  state.seconds = 0;
+}
+
+// Random mode: get current question from pool
+function getRandCurrentQ() {
+  if (state.mode !== 'random') return null;
+  return state.randomPool[state.randomIdx] || null;
+}
+
+function randIsLast() {
+  return state.randomIdx >= state.randomPool.length - 1;
+}
+
+function randPrev() {
+  if (state.randomIdx <= 0) return;
+  state.randomIdx--;
+  const cur = state.randomPool[state.randomIdx];
+  state.section = cur.type;
+  state.currentQ = cur.n;
+  renderQuestion();
+}
+
+function randNext() {
+  if (randIsLast()) { showResults(); return; }
+  state.randomIdx++;
+  const cur = state.randomPool[state.randomIdx];
+  state.section = cur.type;
+  state.currentQ = cur.n;
+  renderQuestion();
+}
+
+// ===== WRONG ANSWER DB =====
+const WRONG_KEY = 'cqt_wrong_db';
+
+function loadWrongDB() {
+  try { return JSON.parse(localStorage.getItem(WRONG_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveWrongDB(db) {
+  localStorage.setItem(WRONG_KEY, JSON.stringify(db));
+}
+
+function addWrong(n, type, myAnswer) {
+  const db = loadWrongDB();
+  const q = type === 'mcq' ? MCQ.find(x => x.n === n) : CALC.find(x => x.n === n);
+  if (!q) return;
+  if (!db[n]) db[n] = {type, n, times:0, myAnswers:[]};
+  db[n].times++;
+  db[n].lastWrong = new Date().toLocaleString('zh-TW');
+  if (myAnswer && db[n].myAnswers.indexOf(myAnswer) === -1) db[n].myAnswers.push(myAnswer);
+  saveWrongDB(db);
+  updateWrongBadges();
+}
+
+function removeWrongEntry(n) {
+  const db = loadWrongDB();
+  delete db[n];
+  saveWrongDB(db);
+  renderWrongList();
+  updateWrongBadges();
+}
+
+function clearAllWrong() {
+  if (!confirm('確定清除所有錯題記錄？')) return;
+  localStorage.removeItem(WRONG_KEY);
+  renderWrongList();
+  updateWrongBadges();
+  showNotification('✓ 錯題記錄已清除');
+}
+
+function updateWrongBadges() {
+  const db = loadWrongDB();
+  const cnt = Object.keys(db).length;
+  ['wrong-count-start','wrong-count-sidebar','wrong-total-count'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = cnt;
+    el.style.display = cnt > 0 ? 'inline-block' : 'none';
+  });
+  const stats = document.getElementById('wrong-stats');
+  if (stats) stats.textContent = cnt > 0 ? ('共 ' + cnt + ' 道錯題') : '';
+}
+
+function renderWrongList() {
+  const db = loadWrongDB();
+  const list = document.getElementById('wrong-list');
+  if (!list) return;
+  const items = Object.values(db).sort((a,b) => b.times - a.times);
+  if (items.length === 0) {
+    list.innerHTML = '<div class="wrong-empty"><div class="big">🎉</div>目前沒有錯題記錄！繼續加油</div>';
+    return;
+  }
+  list.innerHTML = items.map(item => {
+    const q = item.type === 'mcq'
+      ? MCQ.find(x => x.n === item.n)
+      : CALC.find(x => x.n === item.n);
+    if (!q) return '';
+    const typeLabel = item.type === 'mcq' ? '選擇題' : '計算題';
+    let ansRow = '';
+    if (item.type === 'mcq') {
+      const myA = (item.myAnswers||[]).join('、') || '未作答';
+      ansRow = `<div class="wrong-ans-row">
+        <span class="wrong-my">我的答案：${myA}</span>
+        <span class="wrong-correct">正確答案：${q.ans}</span>
+      </div>
+      <div class="wrong-expl">${q.expl}</div>`;
+    } else {
+      ansRow = `<div class="wrong-expl">正確答案：${q.ans}</div>`;
+    }
+    const title = item.type === 'mcq' ? q.q : ('【'+q.ch+'】'+q.q.substring(0,40)+'…');
+    return `<div class="wrong-card" id="wc-${item.n}">
+      <div class="wrong-card-head">
+        <span style="font-size:.82rem;font-weight:700;color:var(--navy)">Q${item.n} ${typeLabel}</span>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span class="wrong-badge">錯${item.times}次</span>
+          <button class="wrong-del" onclick="removeWrongEntry(${item.n})" title="移除此題">✕</button>
+        </div>
+      </div>
+      <div class="wrong-card-body">
+        <div class="wrong-q">${title}</div>
+        ${ansRow}
+        <div style="font-size:.75rem;color:#94a3b8;margin-top:.3rem;">最近錯誤：${item.lastWrong||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openWrongPanel() {
+  renderWrongList();
+  updateWrongBadges();
+  document.getElementById('wrong-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWrongPanel() {
+  document.getElementById('wrong-panel').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeWrongPanelOutside(e) {
+  if (e.target === document.getElementById('wrong-panel')) closeWrongPanel();
+}
+
+function startWrongQuiz() {
+  const db = loadWrongDB();
+  const keys = Object.keys(db);
+  if (keys.length === 0) { alert('沒有錯題記錄！'); return; }
+  // Build pool from wrong questions
+  const pool = keys.map(k => ({type: db[k].type, n: parseInt(k)}));
+  // Shuffle
+  for (let i = pool.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]] = [pool[j],pool[i]];
+  }
+  closeWrongPanel();
+  state.mode = 'random';
+  state.randomPool = pool;
+  state.randomIdx = 0;
+  state.answers = {};
+  state.calcRevealed = {};
+  state.calcChecked = {};
+  state.seconds = 0;
+  const first = pool[0];
+  state.section = first.type;
+  state.currentQ = first.n;
+  // Show exam
+  document.getElementById('start').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('mode-badge').textContent = '錯題練習 🔁';
+  buildRandomDots();
+  addMobileGridToggle();
+  renderQuestion();
+  // no timer for wrong quiz
+}
+
+function buildRandomDots() {
+  const mc = document.getElementById('dots-mcq');
+  const cc = document.getElementById('dots-calc');
+  mc.innerHTML = ''; cc.innerHTML = '';
+  // Show MCQ dots from random pool
+  state.randomPool.filter(x=>x.type==='mcq').forEach((item,i) => {
+    const d = document.createElement('button');
+    d.className = 'q-dot';
+    d.id = 'dot-' + item.n;
+    d.textContent = item.n;
+    d.onclick = () => {
+      state.randomIdx = state.randomPool.findIndex(x=>x.n===item.n&&x.type==='mcq');
+      state.section = 'mcq'; state.currentQ = item.n; renderQuestion();
+    };
+    mc.appendChild(d);
+  });
+  state.randomPool.filter(x=>x.type==='calc').forEach((item,i) => {
+    const d = document.createElement('button');
+    d.className = 'q-dot';
+    d.id = 'dot-' + item.n;
+    d.textContent = item.n;
+    d.onclick = () => {
+      state.randomIdx = state.randomPool.findIndex(x=>x.n===item.n&&x.type==='calc');
+      state.section = 'calc'; state.currentQ = item.n; renderQuestion();
+    };
+    cc.appendChild(d);
+  });
+  updateDots();
+}
+// ===== END NEW FUNCTIONS =====
+
 function startExam() {
+  if (state.mode === 'random') {
+    startRandomExam();
+    document.getElementById('start').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('mode-badge').textContent = '隨機測驗 🎲 (' + state.randomPool.length + '題)';
+    buildRandomDots();
+    addMobileGridToggle();
+    renderQuestion();
+    return;
+  }
   document.getElementById('start').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('mode-badge').textContent = state.mode==='practice'?'練習模式':'考試模式';
@@ -756,6 +1126,11 @@ function renderCalc(q,c) {
 function selectOpt(n, letter) {
   if(state.answers[n]) return;
   state.answers[n]=letter;
+  // Track wrong answers in practice/random mode
+  if(state.mode !== 'exam') {
+    const q = MCQ.find(x=>x.n===n);
+    if(q && letter !== q.ans) addWrong(n, 'mcq', letter);
+  }
   renderQuestion();
   updateDots();
 }
@@ -770,15 +1145,19 @@ function revealCalc(n) {
 
 function toggleCalcCheck(n, val) {
   state.calcChecked[n]=val;
+  // val=false means user marked it wrong
+  if(!val && state.mode !== 'exam') addWrong(n, 'calc', null);
   updateDots();
 }
 
 function isLastQ() {
+  if(state.mode==='random') return randIsLast();
   if(state.section==='mcq') return state.currentQ===MCQ[MCQ.length-1].n;
   return state.currentQ===CALC[CALC.length-1].n;
 }
 
 function prevQ() {
+  if(state.mode==='random') { randPrev(); return; }
   if(state.section==='mcq') {
     const idx=MCQ.findIndex(q=>q.n===state.currentQ);
     if(idx>0) state.currentQ=MCQ[idx-1].n;
@@ -791,6 +1170,7 @@ function prevQ() {
 }
 
 function nextQ() {
+  if(state.mode==='random') { randNext(); return; }
   if(isLastQ()) { showResults(); return; }
   if(state.section==='mcq') {
     const idx=MCQ.findIndex(q=>q.n===state.currentQ);
@@ -809,13 +1189,21 @@ function showResults() {
   const el=document.getElementById('results');
   el.style.display='block';
   
-  const correct=MCQ.filter(q=>state.answers[q.n]===q.ans).length;
-  const wrong=MCQ.filter(q=>state.answers[q.n]&&state.answers[q.n]!==q.ans).length;
-  const unanswered=70-Object.keys(state.answers).length;
-  const calcScore=Object.values(state.calcChecked).filter(Boolean).length*2;
+  // Determine which MCQ/CALC questions are in scope
+  const scopeMCQ = state.mode==='random'
+    ? state.randomPool.filter(x=>x.type==='mcq').map(x=>MCQ.find(q=>q.n===x.n)).filter(Boolean)
+    : MCQ;
+  const scopeCALC = state.mode==='random'
+    ? state.randomPool.filter(x=>x.type==='calc').map(x=>CALC.find(q=>q.n===x.n)).filter(Boolean)
+    : CALC;
+  const correct=scopeMCQ.filter(q=>state.answers[q.n]===q.ans).length;
+  const wrong=scopeMCQ.filter(q=>state.answers[q.n]&&state.answers[q.n]!==q.ans).length;
+  const unanswered=scopeMCQ.length-Object.keys(state.answers).length;
+  const calcScore=scopeCALC.filter(q=>state.calcChecked[q.n]).length*2;
   const mcqScore=correct;
   const total=mcqScore+calcScore;
-  const pct=Math.round(total/130*100);
+  const maxScore=scopeMCQ.length*1+scopeCALC.length*2;
+  const pct=maxScore>0?Math.round(total/maxScore*100):0;
   
   const m=Math.floor(state.seconds/60);
   const s=state.seconds%60;
@@ -827,14 +1215,14 @@ function showResults() {
   else if(pct>=60){grade='及格 📝';gradeColor='#E97316';}
   else{grade='繼續加油 💪';gradeColor='#DC2626';}
   
-  const wrongItems=MCQ.filter(q=>state.answers[q.n]&&state.answers[q.n]!==q.ans);
-  const unansweredItems=MCQ.filter(q=>!state.answers[q.n]);
+  const wrongItems=scopeMCQ.filter(q=>state.answers[q.n]&&state.answers[q.n]!==q.ans);
+  const unansweredItems=scopeMCQ.filter(q=>!state.answers[q.n]);
   
   el.innerHTML=`
     <div class="res-hero">
       <div style="font-size:2.5rem;margin-bottom:.3rem;">📊 成績報告</div>
       <div class="res-score">${total}</div>
-      <div class="res-total">/ 130 分（${pct}%）</div>
+      <div class="res-total">/ ${maxScore} 分（${pct}%）</div>
       <div class="res-grade" style="color:${gradeColor}">${grade}</div>
       <div style="font-size:.9rem;color:#a0c4e8;margin-top:.3rem;">用時：${timeStr}</div>
       <div class="res-grid">
@@ -910,5 +1298,31 @@ function addMobileGridToggle() {
 document.getElementById('start').style.display='flex';
 document.getElementById('app').style.display='none';
 </script>
+
+<!-- Wrong Answer Panel -->
+<div id="wrong-panel" onclick="closeWrongPanelOutside(event)">
+  <div class="wrong-drawer" id="wrong-drawer">
+    <div class="wrong-header">
+      <h2>❌ 錯題本 <span id="wrong-total-count" class="wrong-count-badge">0</span></h2>
+      <div style="display:flex;gap:.6rem;align-items:center;">
+        <button onclick="startWrongQuiz()" style="background:var(--orange);border:none;color:white;
+          padding:.3rem .8rem;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:700;font-family:inherit;">
+          🔁 重練錯題
+        </button>
+        <button class="wrong-close" onclick="closeWrongPanel()">✕</button>
+      </div>
+    </div>
+    <div class="wrong-toolbar">
+      <button onclick="clearAllWrong()" style="border:1px solid #DC2626;color:#DC2626;background:white;
+        padding:.3rem .8rem;border-radius:6px;cursor:pointer;font-size:.82rem;font-family:inherit;">
+        🗑 清除所有錯題
+      </button>
+      <span id="wrong-stats" style="font-size:.82rem;color:var(--gray);align-self:center;"></span>
+    </div>
+    <div class="wrong-list" id="wrong-list">
+      <div class="wrong-empty"><div class="big">🎉</div>目前沒有錯題記錄！</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
