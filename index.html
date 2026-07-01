@@ -469,11 +469,11 @@ main{flex:1;overflow-y:auto;padding:1.2rem;background:var(--bg);}
 .notification.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* Wrong answer panel */
-.wrong-panel{
+#wrong-panel{
   position:fixed;inset:0;z-index:1000;display:none;
   background:rgba(0,0,0,.45);backdrop-filter:blur(2px);
 }
-.wrong-panel.open{display:flex;justify-content:flex-end;}
+#wrong-panel.open{display:flex;justify-content:flex-end;}
 .wrong-drawer{
   background:white;width:min(500px,100vw);height:100vh;overflow-y:auto;
   box-shadow:-6px 0 30px rgba(0,0,0,.25);display:flex;flex-direction:column;
@@ -539,7 +539,7 @@ main{flex:1;overflow-y:auto;padding:1.2rem;background:var(--bg);}
 
 @media(max-width:768px){
   /* Start screen */
-  #start{padding:1rem .85rem;}
+  #start{padding:1rem .85rem;padding-bottom:1.5rem;}
   .start-card{padding:1.4rem 1.1rem 1.1rem;border-radius:16px;}
   .start-logo{font-size:1.85rem;}
   .start-sub{font-size:.88rem;margin-bottom:.9rem;}
@@ -647,6 +647,93 @@ main{flex:1;overflow-y:auto;padding:1.2rem;background:var(--bg);}
   .res-grid{grid-template-columns:1fr 1fr;}
 }
 
+
+/* ── Wrong Page ── */
+#wrong-page { display:none; }
+.wp-filter-btn {
+  padding:.28rem .7rem;border-radius:20px;border:1.5px solid var(--lgray);
+  background:white;cursor:pointer;font-size:.79rem;font-weight:600;
+  font-family:inherit;color:var(--gray);transition:var(--transition);
+  -webkit-tap-highlight-color:transparent;
+}
+.wp-filter-btn.active,.wp-filter-btn:hover{background:var(--navy);color:white;border-color:var(--navy);}
+
+/* List grid chips */
+.wp-chip {
+  padding:.25rem .5rem;border-radius:6px;border:1.5px solid var(--lgray);
+  background:white;cursor:pointer;font-size:.75rem;font-weight:600;
+  font-family:inherit;color:var(--dark);min-width:38px;text-align:center;
+  transition:var(--transition);-webkit-tap-highlight-color:transparent;
+}
+.wp-chip:hover{border-color:var(--navy);color:var(--navy);}
+.wp-chip.current{background:var(--navy);color:white;border-color:var(--navy);}
+.wp-chip.answered{background:#dcfce7;border-color:#86efac;color:#059669;}
+
+/* Card */
+.wp-card {
+  background:white;border-radius:var(--radius);
+  box-shadow:var(--shadow-md);border:1.5px solid var(--lgray);overflow:hidden;
+  animation: wpSlide .18s ease;
+}
+@keyframes wpSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.wp-card-head {
+  background:linear-gradient(135deg,#fef2f2,#fff7f7);
+  padding:.6rem .9rem;border-bottom:1px solid var(--lgray);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;
+}
+.wp-badges{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;}
+.wp-type-badge{font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:20px;background:#dbeafe;color:#1e40af;}
+.wp-type-badge.calc{background:#fef9c3;color:#854d0e;}
+.wp-err-badge{font-size:.7rem;font-weight:700;padding:.12rem .45rem;border-radius:20px;background:#fee2e2;color:#dc2626;}
+.wp-del-btn2{background:none;border:1px solid #fca5a5;color:#dc2626;padding:.2rem .55rem;
+  border-radius:6px;cursor:pointer;font-size:.74rem;font-family:inherit;}
+.wp-del-btn2:hover{background:#fee2e2;}
+
+.wp-card-body{padding:.9rem .9rem;}
+.wp-q-text{font-size:.95rem;font-weight:600;color:var(--dark);line-height:1.6;margin-bottom:.8rem;}
+.wp-opts{display:flex;flex-direction:column;gap:.38rem;margin-bottom:.7rem;}
+.wp-opt{
+  font-size:.88rem;padding:.45rem .7rem;border-radius:8px;
+  border:2px solid var(--lgray);background:var(--bg);color:var(--dark);
+  display:flex;align-items:center;gap:.55rem;
+}
+.wp-opt.my-wrong{background:#fee2e2;border-color:#fca5a5;color:#dc2626;}
+.wp-opt.correct {background:#dcfce7;border-color:#86efac;color:#059669;}
+.wp-opt-letter{min-width:26px;height:26px;border-radius:6px;background:rgba(0,0,0,.06);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;}
+.wp-opt.my-wrong .wp-opt-letter{background:#fca5a5;}
+.wp-opt.correct  .wp-opt-letter{background:#86efac;}
+.wp-expl{background:#f0f9ff;border-radius:8px;padding:.6rem .8rem;
+  font-size:.85rem;color:#0c4a6e;line-height:1.55;border-left:3px solid var(--teal);}
+.wp-calc-q{font-size:.95rem;font-weight:600;color:var(--dark);line-height:1.6;margin-bottom:.75rem;}
+.wp-steps{margin-bottom:.65rem;}
+.wp-step{display:flex;gap:.6rem;margin-bottom:.4rem;align-items:flex-start;}
+.wp-step-num{min-width:22px;height:22px;background:var(--navy);color:white;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:2px;}
+.wp-step-text{font-size:.87rem;line-height:1.5;}
+.wp-calc-ans{background:#f0fdf4;border-radius:8px;padding:.55rem .8rem;
+  font-size:.88rem;color:#059669;font-weight:700;border-left:3px solid #059669;}
+
+/* Nav buttons hover */
+#wp-prev-btn:hover:not(:disabled){border-color:var(--navy);color:var(--navy);background:#f0f9ff;}
+#wp-prev-btn:disabled{opacity:.35;cursor:default;}
+#wp-next-btn:hover{background:var(--teal);border-color:var(--teal);}
+#wp-next-btn:disabled{opacity:.35;cursor:default;}
+
+.wp-empty{text-align:center;padding:5rem 1rem;color:var(--gray);}
+.wp-empty .big{font-size:3.5rem;margin-bottom:.8rem;}
+
+@media(max-width:768px){
+  #wp-list-panel{max-height:160px;}
+  .wp-card-body{padding:.75rem .8rem;}
+  .wp-q-text,.wp-calc-q{font-size:.9rem;}
+  .wp-opt{font-size:.84rem;padding:.4rem .6rem;}
+  .wp-expl{font-size:.82rem;}
+  #wp-nav{padding:.5rem .75rem;}
+  #wp-nav button[style*="padding:.6rem"]{padding:.5rem .75rem!important;font-size:.84rem!important;}
+}
+
 /* ── Wrong inline tab ── */
 .wrong-inline-header {
   display:flex;align-items:center;justify-content:space-between;
@@ -688,7 +775,7 @@ main{flex:1;overflow-y:auto;padding:1.2rem;background:var(--bg);}
 .mnav-btn.active,.mnav-btn:active{color:var(--navy);}
 
 @media(max-width:768px){
-  #mobile-nav{display:flex;}
+  /* #mobile-nav shown via JS only when exam is active */
   #app .layout{padding-bottom:58px;}
   main{padding-bottom:.5rem!important;}
   #results{padding-bottom:70px!important;}
@@ -746,12 +833,12 @@ main{flex:1;overflow-y:auto;padding:1.2rem;background:var(--bg);}
       </div>
     </div>
     <button class="btn-start" onclick="startExam()">▶ 開始作答</button>
-    <button class="wrong-start-btn" onclick="openWrongPanel()">❌ 錯題本 <span id="wrong-count-start" class="wrong-count-badge" style="display:none">0</span></button>
+    <button class="wrong-start-btn" onclick="openWrongPage()">📖 查看錯題本 <span id="wrong-count-start" class="wrong-count-badge" style="display:none">0</span></button>
   </div>
 </div>
 
 <!-- EXAM APP -->
-<div id="app" style="display:flex;">
+<div id="app">
   <header>
     <button class="hdr-home" onclick="goHome()" title="返回首頁">⌂</button>
     <div class="hdr-title">CQT 綜合模擬考卷</div>
@@ -765,7 +852,7 @@ main{flex:1;overflow-y:auto;padding:1.2rem;background:var(--bg);}
       <div class="sec-tabs">
         <div class="sec-tab active" id="tab-mcq" onclick="switchSection('mcq')">選擇題<br><small id="mcq-tab-count">0/790</small></div>
         <div class="sec-tab" id="tab-calc" onclick="switchSection('calc')">計算題<br><small id="calc-tab-count">0/210</small></div>
-        <div class="sec-tab" id="tab-wrong" onclick="switchSection('wrong')" style="color:#dc2626;">❌錯題本<br><small id="wrong-tab-count">0</small></div>
+        <div class="sec-tab" id="tab-wrong" onclick="openWrongPage()" style="color:#dc2626;">❌錯題本<br><small id="wrong-tab-count">0</small></div>
       </div>
       <div class="q-grid">
         <div class="q-grid-title">選擇題</div>
@@ -782,7 +869,7 @@ main{flex:1;overflow-y:auto;padding:1.2rem;background:var(--bg);}
         </div>
       </div>
     
-    <button class="wrong-btn-sidebar" onclick="openWrongPanel()">❌ 錯題本 <span id="wrong-count-sidebar" class="wrong-count-badge" style="display:none">0</span></button>
+    <button class="wrong-btn-sidebar" onclick="openWrongPage()">❌ 錯題本 <span id="wrong-count-sidebar" class="wrong-count-badge" style="display:none">0</span></button>
     <button class="save-btn-sidebar" onclick="saveProgress(); showNotification('✓ 進度已儲存')">💾 儲存進度</button>
     <button class="clear-btn-sidebar" onclick="if(confirm('確定要清除所有進度記錄？'))clearProgress()">🗑️ 清除紀錄</button>
 
@@ -878,8 +965,8 @@ function resumeProgress(data) {
   state.calcChecked = data.calcChecked || {};
   state.seconds = data.seconds || 0;
   
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('exam-screen').style.display = 'flex';
+  document.getElementById('start').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
   
   if (state.mode === 'exam') {
     state.timerRef = setInterval(() => { state.seconds++; updateTimerDisplay(); }, 1000);
@@ -1116,11 +1203,15 @@ function renderWrongList() {
   }).join('');
 }
 
-function openWrongPanel() {
-  renderWrongList();
-  updateWrongBadges();
-  document.getElementById('wrong-panel').classList.add('open');
-  document.body.style.overflow = 'hidden';
+function openWrongPage() {
+  const fromApp = document.getElementById('app').style.display !== 'none';
+  window._wpCameFrom = fromApp ? 'app' : 'start';
+  document.getElementById('start').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('wrong-page').style.display = 'flex';
+  document.getElementById('mobile-nav').style.display = 'none';
+  wpInit();
 }
 
 function closeWrongPanel() {
@@ -1158,6 +1249,7 @@ function startWrongQuiz() {
   document.getElementById('start').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('mode-badge').textContent = '錯題練習 🔁';
+  if(window.innerWidth<=768){document.getElementById('mobile-nav').style.display='flex';}
   buildRandomDots();
   addMobileGridToggle();
   renderQuestion();
@@ -1226,6 +1318,7 @@ function startExam() {
     startRandomExam();
     document.getElementById('start').style.display='none';
     document.getElementById('app').style.display='flex';
+    if(window.innerWidth<=768){document.getElementById('mobile-nav').style.display='flex';}
     document.getElementById('mode-badge').textContent = '隨機測驗 🎲 (' + state.randomPool.length + '題)';
     buildRandomDots();
     addMobileGridToggle();
@@ -1234,6 +1327,7 @@ function startExam() {
   }
   document.getElementById('start').style.display='none';
   document.getElementById('app').style.display='flex';
+  if(window.innerWidth<=768){document.getElementById('mobile-nav').style.display='flex';}
   document.getElementById('mode-badge').textContent = '練習模式';
   // Restore all saved answers + position
   const savedProg = loadSavedProgress();
@@ -1269,6 +1363,7 @@ function startTimer() {
 function goHome() {
   if(!confirm('返回首頁將清除目前作答，確定嗎？')) return;
   clearInterval(state.timerRef);
+  document.getElementById('mobile-nav').style.display='none';
   location.reload();
 }
 
@@ -1638,67 +1733,240 @@ function addMobileGridToggle() {
 }
 
 
-// ── Wrong Tab inline rendering ──────────────────────────────────────────────
-function switchToWrongTab() {
-  const tw = document.getElementById('tab-wrong');
-  document.getElementById('tab-mcq').classList.remove('active');
-  document.getElementById('tab-calc').classList.remove('active');
-  if(tw) tw.classList.add('active');
-  updateMobileNav('wrong');
-  renderWrongInline();
+
+// ═══════════ WRONG PAGE ═══════════════════════════════════════════════════
+let _wpFilter = 'all';
+let _wpIdx    = 0;       // current index in _wpItems
+let _wpItems  = [];      // filtered items array
+let _wpListOpen = false;
+
+function wpCurrentItem() {
+  return _wpItems[_wpIdx] || null;
 }
 
-function renderWrongInline() {
-  const db = loadWrongDB();
-  const items = Object.values(db).sort((a,b) => b.times - a.times);
-  const c = document.getElementById('content');
-  const cnt = items.length;
-  c.innerHTML = `
-    <div class="wrong-inline-header">
-      <h3>❌ 錯題本 <span style="background:#fee2e2;color:#dc2626;border-radius:20px;padding:.1rem .5rem;font-size:.8rem;margin-left:.3rem">${cnt}</span></h3>
-      <div style="display:flex;gap:.5rem;">
-        <button onclick="startWrongQuiz()" style="background:var(--orange);border:none;color:white;padding:.3rem .75rem;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:700;font-family:inherit;white-space:nowrap;">🔁 重練錯題</button>
-        <button onclick="clearAllWrong();renderWrongInline();" style="border:1px solid #dc2626;color:#dc2626;background:white;padding:.3rem .65rem;border-radius:6px;cursor:pointer;font-size:.78rem;font-family:inherit;white-space:nowrap;">🗑 清除</button>
-      </div>
-    </div>
-    <div id="wrong-inline-body">
-      ${cnt===0
-        ? '<div style="text-align:center;padding:4rem 1rem;color:var(--gray)"><div style="font-size:3rem;margin-bottom:1rem">🎉</div><div style="font-size:1.05rem;font-weight:600">目前沒有錯題記錄</div><div style="font-size:.88rem;margin-top:.5rem">練習時答錯的題目會自動收錄</div></div>'
-        : items.map(item => {
-          const q = item.type==='mcq' ? MCQ.find(x=>x.n===item.n) : CALC.find(x=>x.n===item.n);
-          if(!q) return '';
-          const typeLabel = item.type==='mcq' ? '選擇題' : '計算題';
-          const preview = item.type==='mcq'
-            ? q.q.substring(0,55) + (q.q.length>55?'…':'')
-            : '【'+q.ch+'】'+q.q.substring(0,45)+'…';
-          const ansRow = item.type==='mcq'
-            ? \`<div class="wrong-ans-row" style="margin-top:.3rem;display:flex;gap:.4rem;flex-wrap:wrap;">
-                <span class="wrong-my">我的答案：\${(item.myAnswers||[]).join('、')||'未記錄'}</span>
-                <span class="wrong-correct">正確答案：\${q.ans}</span>
-              </div>
-              <div class="wrong-expl" style="margin-top:.4rem">\${q.expl}</div>\`
-            : \`<div class="wrong-expl" style="margin-top:.4rem">正確答案：\${q.ans}</div>\`;
-          return \`<div class="wrong-inline-card">
-            <div class="wrong-inline-card-head">
-              <div style="display:flex;align-items:center;gap:.5rem;">
-                <span style="font-size:.82rem;font-weight:700;color:var(--navy)">Q\${item.n} \${typeLabel}</span>
-                <span class="wrong-badge">錯\${item.times}次</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:.4rem;">
-                <button onclick="jumpToQuestion(\${item.n},'\${item.type}')" style="border:1px solid var(--navy);color:var(--navy);background:white;padding:.2rem .6rem;border-radius:5px;cursor:pointer;font-size:.75rem;font-family:inherit;">前往</button>
-                <button onclick="removeWrongEntry(\${item.n});renderWrongInline();" class="wrong-del" title="移除">✕</button>
-              </div>
-            </div>
-            <div class="wrong-inline-card-body">
-              <div style="font-weight:600;color:var(--dark);line-height:1.45;font-size:.88rem">\${preview}</div>
-              \${ansRow}
-              <div style="font-size:.72rem;color:#94a3b8;margin-top:.3rem">最近：\${item.lastWrong||''}</div>
-            </div>
-          </div>\`;
-        }).join('')
-      }
-    </div>`;
+function openWrongPage() {
+  const fromApp   = document.getElementById('app').style.display !== 'none';
+  window._wpCameFrom = fromApp ? 'app' : 'start';
+  document.getElementById('start').style.display   = 'none';
+  document.getElementById('app').style.display     = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('wrong-page').style.display = 'flex';
+  document.getElementById('mobile-nav').style.display = 'none';
+  wpInit();
 }
+
+function closeWrongPage() {
+  document.getElementById('wrong-page').style.display = 'none';
+  if (window._wpCameFrom === 'app') {
+    document.getElementById('app').style.display = 'flex';
+    if(window.innerWidth<=768){document.getElementById('mobile-nav').style.display='flex';}
+  } else {
+    document.getElementById('start').style.display = 'flex';
+    document.getElementById('mobile-nav').style.display = 'none';
+  }
+}
+
+function wpInit() {
+  _wpIdx = 0;
+  wpBuildItems();
+  wpRenderAll();
+}
+
+function wpSetFilter(type, btn) {
+  _wpFilter = type;
+  _wpIdx = 0;
+  document.querySelectorAll('.wp-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  wpBuildItems();
+  wpRenderAll();
+}
+
+function wpBuildItems() {
+  const db = loadWrongDB();
+  _wpItems = Object.values(db).sort(function(a,b){ return b.times - a.times; });
+  if (_wpFilter !== 'all') {
+    _wpItems = _wpItems.filter(function(x){ return x.type === _wpFilter; });
+  }
+}
+
+function wpRenderAll() {
+  const cnt = Object.keys(loadWrongDB()).length;
+  const sub = document.getElementById('wp-subtitle');
+  if (sub) sub.textContent = cnt > 0 ? '共 ' + cnt + ' 道錯題' : '目前沒有錯題';
+  const qb = document.getElementById('wp-quiz-btn');
+  if (qb) qb.style.display = cnt > 0 ? 'block' : 'none';
+
+  const ca = document.getElementById('wp-card-area');
+  if (!ca) return;
+
+  if (_wpItems.length === 0) {
+    ca.innerHTML = '<div class="wp-empty"><div class="big">🎉</div>'
+      + (cnt === 0
+        ? '<div style="font-size:1.1rem;font-weight:700">目前沒有錯題記錄</div>'
+          + '<div style="margin-top:.5rem;font-size:.9rem">練習時答錯的題目會自動收錄</div>'
+        : '<div style="font-size:1rem;font-weight:600">此類別目前無錯題</div>')
+      + '</div>';
+    document.getElementById('wp-nav').style.display = 'none';
+    document.getElementById('wp-counter').textContent = '';
+    document.getElementById('wp-prog').style.width = '0%';
+    return;
+  }
+
+  document.getElementById('wp-nav').style.display = 'flex';
+  wpRenderCard();
+  wpRenderListGrid();
+}
+
+function wpRenderCard() {
+  if (_wpIdx < 0) _wpIdx = 0;
+  if (_wpIdx >= _wpItems.length) _wpIdx = _wpItems.length - 1;
+
+  const item = _wpItems[_wpIdx];
+  const q = item.type === 'mcq'
+    ? MCQ.find(function(x){ return x.n === item.n; })
+    : CALC.find(function(x){ return x.n === item.n; });
+
+  // Update counter + progress
+  const pos = _wpIdx + 1;
+  const total = _wpItems.length;
+  document.getElementById('wp-counter').textContent = pos + ' / ' + total;
+  document.getElementById('wp-pos-label').textContent = pos + ' / ' + total;
+  document.getElementById('wp-prog').style.width = (pos / total * 100) + '%';
+
+  // Update nav buttons
+  document.getElementById('wp-prev-btn').disabled = _wpIdx <= 0;
+  document.getElementById('wp-next-btn').disabled = _wpIdx >= total - 1;
+
+  // Highlight current chip
+  document.querySelectorAll('.wp-chip').forEach(function(c) {
+    c.classList.toggle('current', parseInt(c.dataset.n) === item.n && c.dataset.type === item.type);
+  });
+
+  if (!q) {
+    document.getElementById('wp-card-area').innerHTML =
+      '<div style="text-align:center;padding:2rem;color:var(--gray)">題目資料不存在</div>';
+    return;
+  }
+
+  const typeLabel = item.type === 'mcq' ? '選擇題' : '計算題';
+  const typeCls   = item.type === 'mcq' ? '' : ' calc';
+  const myA = (item.myAnswers||[]).join('、') || '';
+
+  let bodyHtml = '';
+  if (item.type === 'mcq') {
+    let optsHtml = '';
+    (q.opts||[]).forEach(function(opt) {
+      const letter = opt[0];
+      let cls = 'wp-opt';
+      if (letter === q.ans) cls += ' correct';
+      else if (myA.indexOf(letter) >= 0) cls += ' my-wrong';
+      const icon = letter === q.ans ? '✓' : (myA.indexOf(letter) >= 0 ? '✗' : letter);
+      optsHtml += '<div class="' + cls + '">'
+        + '<span class="wp-opt-letter">' + icon + '</span>'
+        + '<span>' + opt.replace(/^[A-D]\. /, '') + '</span></div>';
+    });
+    bodyHtml = '<div class="wp-q-text">' + q.q + '</div>'
+      + '<div class="wp-opts">' + optsHtml + '</div>'
+      + '<div class="wp-expl">💡 ' + q.expl + '</div>';
+  } else {
+    let stepsHtml = '';
+    (q.steps||[]).forEach(function(s, i) {
+      stepsHtml += '<div class="wp-step">'
+        + '<span class="wp-step-num">' + (i+1) + '</span>'
+        + '<span class="wp-step-text">' + s + '</span></div>';
+    });
+    bodyHtml = '<div class="wp-calc-q">' + q.q + '</div>'
+      + (stepsHtml ? '<div class="wp-steps">' + stepsHtml + '</div>' : '')
+      + '<div class="wp-calc-ans">✓ ' + q.ans + '</div>';
+  }
+
+  document.getElementById('wp-card-area').innerHTML =
+    '<div class="wp-card">'
+    + '<div class="wp-card-head">'
+    + '<div class="wp-badges">'
+    + '<span style="font-size:.9rem;font-weight:800;color:var(--navy)">Q' + item.n + '</span>'
+    + '<span class="wp-type-badge' + typeCls + '">' + typeLabel + '</span>'
+    + '<span class="wp-err-badge">✗ ' + item.times + ' 次</span>'
+    + '</div>'
+    + '<button class="wp-del-btn2" onclick="wpDeleteCurrent()">移除此題</button>'
+    + '</div>'
+    + '<div class="wp-card-body">' + bodyHtml + '</div>'
+    + '</div>';
+}
+
+function wpRenderListGrid() {
+  const grid = document.getElementById('wp-list-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  _wpItems.forEach(function(item, i) {
+    const btn = document.createElement('button');
+    btn.className = 'wp-chip' + (i === _wpIdx ? ' current' : '');
+    btn.textContent = 'Q' + item.n;
+    btn.dataset.n = item.n;
+    btn.dataset.type = item.type;
+    btn.onclick = function() { _wpIdx = i; wpRenderCard(); wpRenderListGrid(); };
+    grid.appendChild(btn);
+  });
+}
+
+function wpToggleList() {
+  _wpListOpen = !_wpListOpen;
+  document.getElementById('wp-list-panel').style.display = _wpListOpen ? 'block' : 'none';
+  document.getElementById('wp-list-toggle').textContent = _wpListOpen ? '✕ 收起' : '☰ 題目列表';
+}
+
+function wpPrev() {
+  if (_wpIdx <= 0) return;
+  _wpIdx--;
+  wpRenderCard();
+  wpRenderListGrid();
+  document.getElementById('wp-card-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function wpNext() {
+  if (_wpIdx >= _wpItems.length - 1) return;
+  _wpIdx++;
+  wpRenderCard();
+  wpRenderListGrid();
+  document.getElementById('wp-card-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function wpDeleteCurrent() {
+  if (!_wpItems[_wpIdx]) return;
+  const n = _wpItems[_wpIdx].n;
+  removeWrongEntry(n);
+  wpBuildItems();
+  if (_wpIdx >= _wpItems.length) _wpIdx = Math.max(0, _wpItems.length - 1);
+  wpRenderAll();
+}
+
+function wpJumpToQ(n, type) {
+  closeWrongPage();
+  if (document.getElementById('app').style.display === 'none') {
+    document.getElementById('start').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('mode-badge').textContent = '練習模式';
+    buildDots();
+    addMobileGridToggle();
+    startTimer();
+  }
+  state.section = type;
+  state.currentQ = n;
+  document.getElementById('tab-mcq').classList.toggle('active', type==='mcq');
+  document.getElementById('tab-calc').classList.toggle('active', type==='calc');
+  const tw = document.getElementById('tab-wrong');
+  if (tw) tw.classList.remove('active');
+  updateMobileNav(type);
+  renderQuestion();
+  showNotification('→ 跳至 Q' + n);
+}
+// ═══════════ END WRONG PAGE ═══════════════════════════════════════════════
+
+// ── Wrong Tab inline rendering ──────────────────────────────────────────────
+function switchToWrongTab() {
+  openWrongPage();
+}
+
 
 function jumpToQuestion(n, type) {
   state.section = type;
@@ -1753,6 +2021,82 @@ updateWrongBadges();
     </div>
   </div>
 </div>
+
+<!-- ====== WRONG PAGE (full screen, one-card view) ====== -->
+<div id="wrong-page" style="display:none;min-height:100vh;background:var(--bg);flex-direction:column;">
+
+  <!-- Header -->
+  <header id="wp-header" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:white;
+    padding:.6rem .9rem;display:flex;align-items:center;gap:.7rem;
+    position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);">
+    <button onclick="closeWrongPage()" style="background:rgba(255,255,255,.18);border:none;
+      color:white;width:36px;height:36px;border-radius:9px;cursor:pointer;font-size:1.15rem;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;">←</button>
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:700;font-size:.97rem;">❌ 錯題本</div>
+      <div id="wp-subtitle" style="font-size:.74rem;opacity:.85;">載入中…</div>
+    </div>
+    <button onclick="startWrongQuiz()" id="wp-quiz-btn"
+      style="display:none;background:var(--orange);border:none;color:white;padding:.35rem .8rem;
+      border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:700;font-family:inherit;white-space:nowrap;">
+      🔁 重練錯題</button>
+    <button onclick="clearAllWrong();wpInit();"
+      style="background:rgba(255,255,255,.15);border:none;color:white;padding:.32rem .65rem;
+      border-radius:8px;cursor:pointer;font-size:.78rem;font-family:inherit;white-space:nowrap;">🗑</button>
+  </header>
+
+  <!-- Progress bar -->
+  <div style="background:rgba(0,0,0,.12);height:3px;flex-shrink:0;">
+    <div id="wp-prog" style="background:var(--orange);height:3px;width:0%;transition:width .25s;"></div>
+  </div>
+
+  <!-- Filter + counter bar -->
+  <div style="background:white;border-bottom:2px solid var(--lgray);padding:.5rem .9rem;
+    display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;
+    position:sticky;top:57px;z-index:99;">
+    <button class="wp-filter-btn active" id="wpf-all"  onclick="wpSetFilter('all',this)">全部</button>
+    <button class="wp-filter-btn"        id="wpf-mcq"  onclick="wpSetFilter('mcq',this)">選擇題</button>
+    <button class="wp-filter-btn"        id="wpf-calc" onclick="wpSetFilter('calc',this)">計算題</button>
+    <div style="flex:1;"></div>
+    <span id="wp-counter" style="font-size:.82rem;color:var(--gray);font-weight:600;white-space:nowrap;"></span>
+    <button onclick="wpToggleList()" id="wp-list-toggle"
+      style="background:var(--bg);border:1.5px solid var(--lgray);color:var(--navy);
+      padding:.28rem .65rem;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;font-family:inherit;">
+      ☰ 題目列表</button>
+  </div>
+
+  <!-- Slide-down list panel -->
+  <div id="wp-list-panel" style="display:none;background:white;border-bottom:2px solid var(--lgray);
+    max-height:220px;overflow-y:auto;padding:.5rem .7rem;">
+    <div id="wp-list-grid" style="display:flex;flex-wrap:wrap;gap:.35rem;"></div>
+  </div>
+
+  <!-- Card area -->
+  <div id="wp-card-area" style="flex:1;padding:.85rem .9rem;max-width:760px;
+    margin:0 auto;width:100%;box-sizing:border-box;"></div>
+
+  <!-- Bottom nav bar -->
+  <div id="wp-nav" style="background:white;border-top:2px solid var(--lgray);padding:.6rem .9rem;
+    display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+    position:sticky;bottom:0;z-index:98;box-shadow:0 -2px 8px rgba(0,0,0,.07);">
+    <button onclick="wpPrev()" id="wp-prev-btn"
+      style="padding:.6rem 1.1rem;border-radius:var(--radius-sm);border:2px solid var(--lgray);
+      background:white;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--dark);
+      font-family:inherit;transition:var(--transition);">← 上一題</button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:.25rem;">
+      <span id="wp-pos-label" style="font-size:.8rem;color:var(--gray);font-weight:600;"></span>
+      <button onclick="wpJumpToQ(wpCurrentItem().n, wpCurrentItem().type)"
+        style="padding:.28rem .75rem;background:var(--navy);color:white;border:none;
+        border-radius:6px;cursor:pointer;font-size:.77rem;font-family:inherit;font-weight:600;">
+        ✏️ 前往作答</button>
+    </div>
+    <button onclick="wpNext()" id="wp-next-btn"
+      style="padding:.6rem 1.1rem;border-radius:var(--radius-sm);border:2px solid var(--navy);
+      background:var(--navy);color:white;cursor:pointer;font-size:.88rem;font-weight:600;
+      font-family:inherit;transition:var(--transition);">下一題 →</button>
+  </div>
+</div>
+
 <!-- Mobile bottom nav -->
 <nav id="mobile-nav">
   <button class="mnav-btn" id="mnav-home" onclick="if(document.getElementById('app').style.display!=='none'){if(confirm('返回首頁？'))location.reload();}">
@@ -1764,7 +2108,7 @@ updateWrongBadges();
   <button class="mnav-btn" id="mnav-calc" onclick="if(document.getElementById('app').style.display!=='none')switchSection('calc')">
     <span>🧮</span><span>計算題</span>
   </button>
-  <button class="mnav-btn" id="mnav-wrong" onclick="if(document.getElementById('app').style.display!=='none')switchSection('wrong')">
+  <button class="mnav-btn" id="mnav-wrong" onclick="openWrongPage()">
     <span>❌</span><span>錯題本 <span id="mnav-wrong-cnt" style="display:none;background:#dc2626;color:#fff;border-radius:10px;font-size:.62rem;padding:.05rem .3rem;"></span></span>
   </button>
 </nav>
